@@ -16,8 +16,8 @@ foreign import canvas "canvas"
 foreign canvas {
 	// Fill a rectangle in logical pixels with 0xRRGGBB.
 	fill_rect :: proc(x, y, w, h: i32, rgb: u32) ---
-	// Copy a w by h piece of a sheet at (sx, sy) to (dx, dy), tinted 0xRRGGBB.
-	blit :: proc(sheet: i32, sx, sy, w, h: i32, dx, dy: i32, rgb: u32) ---
+	// Copy a w by h piece of a sheet at (sx, sy) to (dx, dy), scaled to dw by dh, tinted 0xRRGGBB.
+	blit :: proc(sheet: i32, sx, sy, w, h: i32, dx, dy, dw, dh: i32, rgb: u32) ---
 	// Plays sound effect `id` (order of game.Sound), at most `max_ms` long.
 	audio_sfx :: proc(id: i32, gain: f32, max_ms: i32) ---
 	// Starts the looping, slightly off-key radio. Safe to call repeatedly; it cannot be stopped.
@@ -151,11 +151,30 @@ tile_art :: proc(t: game.Tile) -> (sheet: Sheet, col, row: i32, ink: Ink) {
 	return .Natural, 0, 0, .Paper
 }
 
+// Landmarks are drawn at the wrong size on purpose: the barn is huge, the cow is a bit small, the
+// houses lean off their tiles. Purely visual; the game still treats each as one tile.
+Fit :: struct {
+	size, ox, oy: i32,
+}
+
+LANDMARK_FIT := [game.Landmark_Kind]Fit {
+	.Barn         = {22, -6, -12},
+	.Ruin         = {12, -1, -1},
+	.Cow          = {13, -2, -3},
+	.Oak          = {16, -3, -6},
+	.House        = {18, -4, -8},
+	.Yellow_House = {14, -2, -4},
+}
+
+// The Grandma portrait is a different person from the People sheet on each level, and none of
+// them is quite right.
+PORTRAITS := [?][2]i32{{0, 2}, {6, 10}, {15, 22}}
+
 landmark_art :: proc(k: game.Landmark_Kind) -> (sheet: Sheet, col, row: i32, ink: Ink) {
 	switch k {
 	case .Barn:         return .Civilized, 17, 2, .Barn
 	case .Ruin:         return .Natural, 1, 19, .Barn
-	case .Cow:          return .Natural, 1, 14, .Text
+	case .Cow:          return .Creatures, 6, 9, .Text
 	case .Oak:          return .Natural, 1, 18, .Tree
 	case .House:        return .Civilized, 2, 1, .House
 	case .Yellow_House: return .Civilized, 3, 1, .Road
@@ -171,13 +190,18 @@ draw :: proc() {
 			if state.tiles[y][x] != .Grass {
 				draw_tile(.Natural, 1, 5, x, y, .Grass)
 			}
-			draw_tile(sheet, col, row, x, y, ink)
+			tint := ink
+			if state.tiles[y][x] == .Grass && ransom(x, y) {
+				tint = .Barn // a few grass tiles in the wrong colour, like a ransom note
+			}
+			draw_tile(sheet, col, row, x, y, tint)
 		}
 	}
 	for lm, kind in state.landmarks {
 		if lm.present {
 			sheet, col, row, ink := landmark_art(kind)
-			draw_tile(sheet, col, row, lm.pos.x, lm.pos.y, ink)
+			f := LANDMARK_FIT[kind]
+			blit(i32(sheet), col * TILE, row * TILE, TILE, TILE, i32(lm.pos.x) * TILE + f.ox, i32(lm.pos.y) * TILE + f.oy, f.size, f.size, color(ink))
 		}
 	}
 	draw_car()
@@ -202,21 +226,46 @@ draw_verdict :: proc() {
 	draw_text("R TRY AGAIN   ENTER NEXT", x + 6, y + 88)
 }
 
-draw_tile :: proc(sheet: Sheet, col, row: i32, x, y: int, ink: Ink) {
-	blit(i32(sheet), col * TILE, row * TILE, TILE, TILE, i32(x) * TILE, i32(y) * TILE, color(ink))
+// A fixed pattern, so it does not flicker.
+ransom :: proc(x, y: int) -> bool {
+	return (x * 7 + y * 13 + level_index * 5) % 11 == 0
 }
 
-// The car is code-drawn: no top-down vehicle exists in the chosen tile sets.
+draw_tile :: proc(sheet: Sheet, col, row: i32, x, y: int, ink: Ink) {
+	blit(i32(sheet), col * TILE, row * TILE, TILE, TILE, i32(x) * TILE, i32(y) * TILE, TILE, TILE, color(ink))
+}
+
+// The car is code-drawn: no top-down vehicle exists in the chosen tile sets. It is an ill-fitting
+// body with a mismatched boot and wheels that do not agree on a colour.
 draw_car :: proc() {
 	px := i32(state.car.x) * TILE
 	py := i32(state.car.y) * TILE
-	car := color(.Car)
-	fill_rect(px + 2, py + 2, 6, 6, car)
-	switch state.heading {
-	case .North: fill_rect(px + 4, py, 2, 2, car)
-	case .East:  fill_rect(px + 8, py + 4, 2, 2, car)
-	case .South: fill_rect(px + 4, py + 8, 2, 2, car)
-	case .West:  fill_rect(px, py + 4, 2, 2, car)
+	body := color(.Car)
+	boot := color(.Barn)
+	wheel := color(.Tree)
+	vertical := state.heading == .North || state.heading == .South
+	if vertical {
+		fill_rect(px + 2, py + 1, 6, 8, body)
+		fill_rect(px + 1, py + 2, 1, 2, wheel)
+		fill_rect(px + 8, py + 6, 1, 2, wheel)
+		if state.heading == .North {
+			fill_rect(px + 3, py + 8, 4, 2, boot)
+			fill_rect(px + 4, py, 2, 1, color(.House))
+		} else {
+			fill_rect(px + 3, py, 4, 2, boot)
+			fill_rect(px + 4, py + 9, 2, 1, color(.House))
+		}
+	} else {
+		fill_rect(px + 1, py + 2, 8, 6, body)
+		fill_rect(px + 2, py + 1, 2, 1, wheel)
+		fill_rect(px + 6, py + 8, 2, 1, wheel)
+		if state.heading == .East {
+			fill_rect(px, py + 3, 2, 4, boot)
+			fill_rect(px + 9, py + 4, 1, 2, color(.House))
+		} else {
+			fill_rect(px + 8, py + 3, 2, 4, boot)
+			fill_rect(px, py + 4, 1, 2, color(.House))
+		}
 	}
 }
 
@@ -225,9 +274,10 @@ draw_hud :: proc() {
 	buf: [64]u8
 	line := fmt.bprintf(buf[:], "PATIENCE %d   TURN %d", state.patience, state.turn)
 	draw_text(line, 2, top + 1)
-	draw_wrapped(state.said, 2, top + 9, 2)
+	draw_wrapped(state.said, 2, top + 9, 2, SCREEN_W - 38)
+	draw_portrait(top)
 	if !game.finished(&state) {
-		draw_text("ARROWS DRIVE, SPACE BRAKES, H HONKS, 1 2 3 LEVEL", 2, top + 25)
+		draw_text("ARROWS DRIVE, SPACE BRAKE, H HONK", 2, top + 25)
 	}
 }
 
@@ -236,7 +286,7 @@ draw_text :: proc(s: string, x, y: i32) {
 	cx := x
 	for i in 0 ..< len(s) {
 		c := i32(s[i])
-		blit(i32(Sheet.Font), (c % 16) * 6, (c / 16) * 8, 6, 8, cx, y, color(.Text))
+		blit(i32(Sheet.Font), (c % 16) * 6, (c / 16) * 8, 6, 8, cx, y, 6, 8, color(.Text))
 		cx += 6
 	}
 }
@@ -264,4 +314,14 @@ draw_wrapped :: proc(s: string, x, y: i32, lines: int, width: i32 = SCREEN_W) {
 			start += 1
 		}
 	}
+}
+
+// Grandma, scaled to an awkward 3x and parked slightly off the corner of the screen.
+draw_portrait :: proc(top: i32) {
+	p := PORTRAITS[level_index % len(PORTRAITS)]
+	x: i32 = SCREEN_W - 34
+	y: i32 = top + 1
+	fill_rect(x - 1, y - 1, 33, 31, color(.Barn))
+	fill_rect(x, y, 31, 29, color(.House))
+	blit(i32(Sheet.People), p.x * TILE, p.y * TILE, TILE, TILE, x + 1, y - 1, 30, 30, color(.Paper))
 }

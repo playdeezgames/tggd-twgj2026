@@ -71,5 +71,5 @@ You drive. Grandma navigates from the passenger seat with landmark-based directi
 
 ## Open questions
 
-- Exact tile picks are deferred to the Day 5 art pass: the current picks in `src/web/web.odin` are first guesses and the cow is a placeholder.
+- Art pass done (`src/web/web.odin`): the cow is Bit Bonanza Creatures (6,9), Grandma is a different People tile on each level (`PORTRAITS`) drawn 3x and off the corner, landmarks are drawn at deliberately wrong sizes (`LANDMARK_FIT`), a fixed ransom-note pattern of grass tiles is in the wrong colour, and the car is a code-drawn body with a mismatched boot and wheels. The tile picks themselves are still easy to change in `tile_art` and `landmark_art`.
 - Whether the late-input control joke is frustrating enough to hurt completion rates; playtest in Day 6.

@@ -123,9 +123,9 @@
       audio_sfx: sfx,
       audio_radio: radio,
       fill_rect: (x, y, w, h, rgb) => { g.fillStyle = hex(rgb); g.fillRect(x, y, w, h); },
-      blit: (sheet, sx, sy, w, h, dx, dy, rgb) => {
+      blit: (sheet, sx, sy, w, h, dx, dy, dw, dh, rgb) => {
         if (!sheets[sheet]) return;
-        g.drawImage(tintedSheet(sheet, rgb), sx, sy, w, h, dx, dy, w, h);
+        g.drawImage(tintedSheet(sheet, rgb), sx, sy, w, h, dx, dy, dw, dh);
       },
     },
   };
