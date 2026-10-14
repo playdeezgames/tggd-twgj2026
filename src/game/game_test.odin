@@ -309,3 +309,45 @@ resolving_an_instruction_makes_a_sound :: proc(t: ^testing.T) {
 	testing.expect(t, has_sound(&g, .Obey), "obeyed")
 	testing.expect(t, has_sound(&g, .Putt), "engine putt")
 }
+
+@(test)
+verdict_tiers_follow_the_outcomes :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_1)
+	testing.expect(t, verdict_tier(&g) == .Nowhere, "not won")
+	g.won = true
+	for i in 0 ..< len(LEVEL_1_INSTRUCTIONS) {
+		g.outcomes[i] = .Obeyed
+	}
+	testing.expect(t, verdict_tier(&g) == .Exactly_As_Told, "all obeyed")
+	g.outcomes[1] = .Wrong
+	testing.expect(t, verdict_tier(&g) == .Good_Enough, "one wrong")
+	g.outcomes[0], g.outcomes[2], g.outcomes[3] = .Wrong, .Timed_Out, .Wrong
+	testing.expect(t, verdict_tier(&g) == .Somehow_Arrived, "mostly wrong, still delighted")
+	g.won, g.lost = false, true
+	testing.expect(t, verdict_tier(&g) == .Nowhere, "lost")
+}
+
+@(test)
+every_level_has_a_line_for_every_tier :: proc(t: ^testing.T) {
+	for level in LEVELS {
+		for tier in Tier {
+			testing.expectf(t, len(level.verdicts[tier]) > 0, "%s has no line for %v", level.name, tier)
+		}
+	}
+}
+
+@(test)
+finished_game_stays_finished :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_1)
+	play(&g, .Forward, 5)
+	play(&g, .Turn_Right)
+	play(&g, .Forward, 10)
+	play(&g, .Turn_Left)
+	play(&g, .Forward, 6)
+	play(&g, .Turn_Right)
+	play(&g, .Forward, 9)
+	testing.expect(t, finished(&g) && g.won, "won")
+	turn := g.turn
+	play(&g, .Forward, 3)
+	testing.expect(t, g.turn == turn, "no further turns after the end")
+}

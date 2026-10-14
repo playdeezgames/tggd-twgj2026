@@ -92,6 +92,16 @@ on_key :: proc(e: js.Event) {
 		state = game.new_game(game.LEVELS[level_index])
 		js.event_prevent_default()
 		return
+	case "KeyN", "Enter":
+		// On the verdict screen, Enter or N moves on (the last level starts over).
+		if game.finished(&state) {
+			if state.won {
+				level_index = (level_index + 1) % len(game.LEVELS)
+			}
+			state = game.new_game(game.LEVELS[level_index])
+		}
+		js.event_prevent_default()
+		return
 	case "Digit1", "Digit2", "Digit3":
 		level_index = int(e.data.key.code[5] - '1')
 		state = game.new_game(game.LEVELS[level_index])
@@ -173,6 +183,24 @@ draw :: proc() {
 	}
 	draw_car()
 	draw_hud()
+	if game.finished(&state) {
+		draw_verdict()
+	}
+}
+
+// A framed panel over the map: her verdict, then how it went.
+draw_verdict :: proc() {
+	x, y, w, h: i32 = 20, 24, SCREEN_W - 40, 104
+	fill_rect(x - 2, y - 2, w + 4, h + 4, color(.Text))
+	fill_rect(x, y, w, h, color(.Paper))
+	tier := game.verdict_tier(&state)
+	draw_text(game.TIER_TITLES[tier], x + 6, y + 6)
+	draw_wrapped(game.verdict_line(&state), x + 6, y + 22, 4, x + w - 6)
+	c := game.count_outcomes(&state)
+	buf: [64]u8
+	draw_text(fmt.bprintf(buf[:], "LINES OBEYED %d OF %d", c.obeyed, len(state.level.instructions)), x + 6, y + 62)
+	draw_text(fmt.bprintf(buf[:], "PATIENCE %d  TURNS %d", max(state.patience, 0), state.turn), x + 6, y + 72)
+	draw_text("R TRY AGAIN   ENTER NEXT", x + 6, y + 88)
 }
 
 draw_tile :: proc(sheet: Sheet, col, row: i32, x, y: int, ink: Ink) {
@@ -199,12 +227,7 @@ draw_hud :: proc() {
 	line := fmt.bprintf(buf[:], "PATIENCE %d   TURN %d", state.patience, state.turn)
 	draw_text(line, 2, top + 1)
 	draw_wrapped(state.said, 2, top + 9, 2)
-	switch {
-	case state.won:
-		draw_text("YOU ARRIVED. R TO RESTART", 2, top + 25)
-	case state.lost:
-		draw_text("SHE HAS GONE QUIET. R TO RESTART", 2, top + 25)
-	case:
+	if !game.finished(&state) {
 		draw_text("ARROWS DRIVE, SPACE BRAKES, H HONKS, 1 2 3 LEVEL", 2, top + 25)
 	}
 }
@@ -220,8 +243,8 @@ draw_text :: proc(s: string, x, y: i32) {
 }
 
 // Greedy word wrap into at most `lines` rows of the screen width (6 px per glyph).
-draw_wrapped :: proc(s: string, x, y: i32, lines: int) {
-	cols := int((SCREEN_W - x) / 6)
+draw_wrapped :: proc(s: string, x, y: i32, lines: int, width: i32 = SCREEN_W) {
+	cols := int((width - x) / 6)
 	start := 0
 	for row in 0 ..< lines {
 		if start >= len(s) {

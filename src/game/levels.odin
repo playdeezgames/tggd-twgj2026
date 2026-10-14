@@ -28,6 +28,12 @@ LEVEL_1 := Level {
 	patience = 30,
 	regions      = LEVEL_1_REGIONS[:],
 	instructions = LEVEL_1_INSTRUCTIONS[:],
+	verdicts = {
+		.Nowhere = "Well. I suppose we'll go another day.",
+		.Somehow_Arrived = "That wasn't what I said, but it was lovely.",
+		.Good_Enough = "Good enough, dear. The Hendersons will understand.",
+		.Exactly_As_Told = "Just as I remembered it. You are a good driver.",
+	},
 }
 
 // Indices into LEVEL_1_REGIONS.
@@ -124,6 +130,12 @@ LEVEL_2 := Level {
 	patience     = 30,
 	regions      = LEVEL_2_REGIONS[:],
 	instructions = LEVEL_2_INSTRUCTIONS[:],
+	verdicts = {
+		.Nowhere = "I think we must have missed the funeral.",
+		.Somehow_Arrived = "Well, that's the church. I was thinking of the other church.",
+		.Good_Enough = "A lovely service, whoever it was for.",
+		.Exactly_As_Told = "Right on time. Nobody was expecting us, but still.",
+	},
 }
 
 L2_CORNER_1 :: 0
@@ -251,6 +263,12 @@ LEVEL_3 := Level {
 	patience     = 40,
 	regions      = LEVEL_3_REGIONS[:],
 	instructions = LEVEL_3_INSTRUCTIONS[:],
+	verdicts = {
+		.Nowhere = "We'll just sit here a minute, dear. I'm sure it's close.",
+		.Somehow_Arrived = "You've brought me home. I do like that you knew.",
+		.Good_Enough = "That's my own house. I'd know it anywhere.",
+		.Exactly_As_Told = "Straight home, the whole way round. You are a marvel.",
+	},
 }
 
 L3_CORNER_1 :: 0

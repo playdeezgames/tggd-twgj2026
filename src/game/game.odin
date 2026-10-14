@@ -53,6 +53,7 @@ Level :: struct {
 	patience: int,
 	regions:      []Region,
 	instructions: []Instruction,
+	verdicts:     [Tier]string, // her closing line for each tier, shown on the verdict screen
 }
 
 Game :: struct {
