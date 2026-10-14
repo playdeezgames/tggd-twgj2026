@@ -53,12 +53,18 @@ You drive. Grandma navigates from the passenger seat with landmark-based directi
 ## Release checklist
 
 - AI-disclosure line on the itch page (code written by Claude).
-- Credit every premade asset (fonts, tiles).
+- Credit every premade asset: the DINOBYTE line under Decisions, plus any tiles.
 - Content-rules check: nothing hateful or sexual, no fake viruses, no flashing lights (or add a warning).
 - Publish only when the user says to, with `butler`, after a fresh build (see the vault's `Tech/Shipping to itch.io.md`).
 
+## Decisions
+
+- **Font: DINOBYTE** (mby, CC BY 4.0), 6 by 8 CP437 sheet, from the vault's `Assets/dbyte_1x.png` and `dbyte_2x.png`. Chosen over the ROM 8x8 font because of the latter's provenance. Use the sheets unmodified and tint at draw time. Credit line for the itch page and credits screen:
+  > DINOBYTE bitmap font by mby, https://mby.itch.io/dinobyte, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- **View: top-down** (confirmed by the user).
+- Ship a licence note (from the vault's `Assets/dbyte-LICENSE.txt`) beside the font in the build.
+
 ## Open questions
 
-- Is the car a first-person view or top-down? Top-down is assumed.
-- Which font and tile palette to use (needs the user's call before the vault's "ask first" assets).
+- Tile palette (the font is decided: see Decisions).
 - Whether the late-input control joke is frustrating enough to hurt completion rates; playtest in Day 6.
