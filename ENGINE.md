@@ -41,6 +41,8 @@ Landmark :: struct {
     pos:     [2]int,
     exists:  bool,         // false: Grandma still names it, the map shows a ruin
     stale:   bool,         // true: her name no longer matches what is here
+    path:    []([2]int),   // optional scripted route, one step per player move
+    path_i:  int,
 }
 ```
 
@@ -94,6 +96,8 @@ Instruction :: struct {
 | `Say(text)` | An extra remark, no state change |
 | `Patience(+/-n)` | Adjust the patience clock |
 | `Move_Landmark(id, pos)` | Grandma "remembers" it was elsewhere; the map follows |
+| `Walk_Landmark(id, path)` | Start a landmark walking a scripted path, one tile per player move (the cow that leads the way) |
+| `Turn_Around` | Free U-turn for the car, used to recover from a dead end (the car cannot otherwise reverse) |
 | `Remove_Landmark(id)` | It is gone; the ruin tile appears |
 | `Set_Tiles(region, tile)` | Rewrite the map, for example a road becomes a field |
 | `Swap_Tiles(region_a, region_b)` | Exchange two areas |
@@ -121,7 +125,7 @@ One call, `step(game, input) -> Events`, in a fixed order:
 
 1. Translate the raw key into a command through the control sabotage (delay buffer, swaps, flips).
 2. Apply the command: turn the car, or move one tile if the destination is passable.
-3. Tick landmarks and timed control flags.
+3. Tick landmarks (advancing any walking landmark one step along its path) and timed control flags.
 4. Evaluate the **active** instruction's expects against the new state:
    - obeyed → run `on_obey`, mark outcome, pick `next`
    - violated (a `Turn_At` in the wrong direction, entering an `Avoid` region) → run `on_wrong`
@@ -142,6 +146,7 @@ Each instruction resolves to `Obeyed`, `Wrong`, or `Timed_Out`. The verdict comb
 - **Corrections arrive.** If the player is wrong, a follow-up cue (`After(id, Wrong)`) clarifies in a different, equally unhelpful way. No instruction chain is a dead end: every `on_wrong` leads to a recoverable state or an explicit failure line.
 - **Redundancy.** Important turns have a landmark cue *and* a distance cue, so a player who ignores one still gets there.
 - **Landmark visibility.** The ruin or the replacement tile is always visible when the player gets near, so a stale name can be reasoned about.
+- **Dead ends recover.** The car cannot reverse, so any dead end a wrong turn can reach must fire `Turn_Around` (with a patience cost) through its `on_wrong`.
 - **Timeouts are generous** in level 1 and tighten in level 3.
 
 ## Level data

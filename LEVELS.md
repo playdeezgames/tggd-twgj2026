@@ -88,7 +88,7 @@ Scripted solution: W 7 tiles, turn N at `(14,14)`, N 4 tiles, turn W at `(14,10)
 |---|---|---|---|---|---|---|
 | 1 | `At_Start` | "Down to the end, then right at the Hendersons'." | Turn N at `(14,14)` | `Turn_At(Right, Corner_1)` | 10 | wrong: `Patience(-3)` |
 | 2 | `After(1, Obeyed)` | "Left where the barn used to be." | Turn W at the fork `(14,10)`; the ruin tile `~` marks it | `Turn_At(Left, Fork)` | 8 | obey: `Control(Input_Delay, 14)`, "Let's get a move on!" |
-| 3 | `At_Region(Row10_West)` | "Where's that cow got to? Follow the cow." | Cow walks onto the road and drives W ahead of the car | `Pass(Cow)` | 10 | on cue: `Move_Landmark(Cow, (10,10))`, then it walks W and turns S at `x = 7`; obey: `Score(+1)` |
+| 3 | `At_Region(Row10_West)` | "Where's that cow got to? Follow the cow." | Cow walks onto the road and drives W ahead of the car | `Pass(Cow)` | 10 | on cue: `Walk_Landmark(Cow, path)` from `(10,10)` W along the road, turning S at `x = 7`; obey: `Score(+1)` |
 | 4 | `After_Turns(6)` | "Second left. No, third. Oh, you've gone past it." | Any of the three lefts works | `Turn_At(Left, Left_2)` or `Turn_At(Left, Left_3)` | 12 | on cue: `Reverse_Expects(3)`; wrong: `Patience(-3)` |
 | 5 | `At_Region(Church_Front)` | "Park by the place, dear. Mind the step." | Stop at the door | `Stop(2)` in `Church_Front` | 8 | obey: "Lovely. Now, which funeral is this?" verdict delighted |
 
@@ -140,8 +140,7 @@ Notes: the player drives the whole loop (the outer road returns to the start onl
 
 ## Findings for the engine
 
-- **Needs `Turn_Around`.** The Hendersons' dead end in level 3 needs a free U-turn effect; `ENGINE.md` does not list it yet. Add it.
-- **A moving landmark needs a path.** The cow in level 2 walks along the road, so `Move_Landmark` is not enough; a landmark needs an optional scripted path (a list of tiles, one step per player move).
+- **`Turn_Around`** (the free U-turn at level 3's dead end) and **`Walk_Landmark`** (the cow's scripted path in level 2) have been added to `ENGINE.md`.
 - **Wrong is mostly about cost.** In all three levels, a wrong turn costs patience rather than ending the run, which is what keeps the game completable for raters.
 
 ## Open questions
