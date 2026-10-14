@@ -18,6 +18,10 @@ foreign canvas {
 	fill_rect :: proc(x, y, w, h: i32, rgb: u32) ---
 	// Copy a w by h piece of a sheet at (sx, sy) to (dx, dy), tinted 0xRRGGBB.
 	blit :: proc(sheet: i32, sx, sy, w, h: i32, dx, dy: i32, rgb: u32) ---
+	// One tone: wave 0 square, 1 saw, 2 triangle.
+	audio_tone :: proc(freq: f32, ms: i32, wave: i32, gain: f32) ---
+	// Starts the looping, slightly off-key radio. Safe to call repeatedly; it cannot be stopped.
+	audio_radio :: proc(loud: bool) ---
 }
 
 Sheet :: enum i32 {
@@ -82,6 +86,8 @@ on_key :: proc(e: js.Event) {
 		cmd = .Brake
 	case "KeyH":
 		cmd = .Horn
+	case "KeyM":
+		cmd = .Mute
 	case "KeyR":
 		state = game.new_game(game.LEVELS[level_index])
 		js.event_prevent_default()
@@ -95,7 +101,25 @@ on_key :: proc(e: js.Event) {
 		return
 	}
 	js.event_prevent_default()
+	audio_radio(false) // the first key press unlocks audio, and the radio never stops
 	game.step(&state, cmd)
+	for i in 0 ..< state.sound_count {
+		play_sound(state.sounds[i])
+	}
+}
+
+// Every sound is a little wrong on purpose: detuned, flat, or two notes a semitone apart.
+play_sound :: proc(s: game.Sound) {
+	switch s {
+	case .Putt:      audio_tone(92, 40, 1, 0.06)
+	case .Honk:      audio_tone(440, 260, 0, 0.12); audio_tone(466, 260, 0, 0.12)
+	case .Brake:     audio_tone(58, 180, 1, 0.12)
+	case .Obey:      audio_tone(523, 90, 0, 0.1); audio_tone(659, 110, 0, 0.1); audio_tone(711, 220, 0, 0.1)
+	case .Wrong:     audio_tone(110, 320, 0, 0.14); audio_tone(117, 320, 1, 0.1)
+	case .Timeout:   audio_tone(300, 120, 2, 0.12); audio_tone(212, 360, 2, 0.12)
+	case .Loud_Mute: audio_tone(880, 600, 0, 0.35); audio_radio(true)
+	case .Arrive:    audio_tone(392, 140, 0, 0.1); audio_tone(494, 140, 0, 0.1); audio_tone(575, 420, 0, 0.1)
+	}
 }
 
 @(export)

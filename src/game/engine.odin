@@ -176,10 +176,13 @@ resolve :: proc(g: ^Game, outcome: Outcome) {
 	switch outcome {
 	case .Obeyed:
 		apply_effects(g, inst.on_obey)
+		emit(g, .Obey)
 	case .Wrong:
 		apply_effects(g, inst.on_wrong)
+		emit(g, .Wrong)
 	case .Timed_Out:
 		apply_effects(g, inst.on_timeout)
+		emit(g, .Timeout)
 	case .Pending:
 	}
 	g.active = -1

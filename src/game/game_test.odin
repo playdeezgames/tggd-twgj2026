@@ -271,3 +271,41 @@ level_3_missed_turn_recovers_through_the_dead_end :: proc(t: ^testing.T) {
 	testing.expect(t, g.outcomes[6] == .Obeyed, "re-offered line obeyed")
 	testing.expect(t, g.active == 4, "field line active")
 }
+
+@(private = "file")
+has_sound :: proc(g: ^Game, s: Sound) -> bool {
+	for i in 0 ..< g.sound_count {
+		if g.sounds[i] == s {
+			return true
+		}
+	}
+	return false
+}
+
+@(test)
+sabotaged_keys_make_the_swapped_sound :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_1)
+	play(&g, .Horn)
+	testing.expect(t, has_sound(&g, .Honk), "horn honks")
+	g.control_turns[.Swap_Brake_Horn] = 3
+	play(&g, .Brake)
+	testing.expect(t, has_sound(&g, .Honk), "the brake key honks")
+	testing.expect(t, !has_sound(&g, .Brake), "and does not brake")
+}
+
+@(test)
+mute_is_louder_and_takes_no_turn :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_1)
+	turn, patience := g.turn, g.patience
+	play(&g, .Mute, 5)
+	testing.expect(t, has_sound(&g, .Loud_Mute), "louder")
+	testing.expect(t, g.turn == turn && g.patience == patience, "costs nothing")
+}
+
+@(test)
+resolving_an_instruction_makes_a_sound :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_1)
+	play(&g, .Forward, 5)
+	testing.expect(t, has_sound(&g, .Obey), "obeyed")
+	testing.expect(t, has_sound(&g, .Putt), "engine putt")
+}

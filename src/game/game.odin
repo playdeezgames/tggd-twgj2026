@@ -17,7 +17,23 @@ Command :: enum u8 {
 	Turn_Right,
 	Brake,
 	Horn,
+	Mute, // does nothing but make the radio louder; takes no turn
 }
+
+// Sounds the platform layer should play after a step. The core only says what happened.
+Sound :: enum u8 {
+	Putt,
+	Honk,
+	Brake,
+	Obey,
+	Wrong,
+	Timeout,
+	Loud_Mute,
+	Arrive,
+}
+
+MAX_SOUNDS :: 8
+
 
 // Scenery. Things Grandma can name are landmarks (landmarks.odin), not tiles.
 Tile :: enum u8 {
@@ -51,6 +67,9 @@ Game :: struct {
 	lost:     bool,
 	score:    int,
 	palette:  int, // index into the platform layer's palette table
+
+	sounds:      [MAX_SOUNDS]Sound, // events from the latest step
+	sound_count: int,
 
 	landmarks:     [Landmark_Kind]Landmark,
 	control_turns: [Control_Flag]int, // turns each sabotage flag has left
@@ -115,6 +134,11 @@ step :: proc(g: ^Game, cmd: Command) {
 	if g.won || g.lost {
 		return
 	}
+	g.sound_count = 0
+	if cmd == .Mute {
+		emit(g, .Loud_Mute)
+		return
+	}
 	cmd := cmd
 	if g.control_turns[.Flip_Left_Right] > 0 {
 		#partial switch cmd {
@@ -157,8 +181,16 @@ step :: proc(g: ^Game, cmd: Command) {
 	}
 	if g.car == g.level.goal && g.active == -1 {
 		g.won = true
+		emit(g, .Arrive)
 	} else if g.patience <= 0 {
 		g.lost = true
+	}
+}
+
+emit :: proc(g: ^Game, s: Sound) {
+	if g.sound_count < MAX_SOUNDS {
+		g.sounds[g.sound_count] = s
+		g.sound_count += 1
 	}
 }
 
@@ -186,9 +218,13 @@ apply_command :: proc(g: ^Game, cmd: Command, a: ^Action) {
 		if passable(g, next) {
 			g.car = next
 			a.moved = true
+			emit(g, .Putt)
 		}
 	case .Brake:
+		emit(g, .Brake)
 	case .Horn:
 		a.honk = true
+		emit(g, .Honk)
+	case .Mute:
 	}
 }

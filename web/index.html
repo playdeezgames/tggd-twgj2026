@@ -47,8 +47,52 @@
     return c;
   }
 
+  // --- Audio. Everything is synthesised; nothing here is a recording. ---
+  let ac = null;
+  function audio() {
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ac = new AC();
+    }
+    if (ac.state === "suspended") ac.resume();
+    return ac;
+  }
+  const WAVES = ["square", "sawtooth", "triangle"];
+  function tone(freq, ms, wave, gain) {
+    const a = audio();
+    if (!a) return;
+    const o = a.createOscillator();
+    const g = a.createGain();
+    o.type = WAVES[wave] || "square";
+    o.frequency.value = freq;
+    const t = a.currentTime;
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + ms / 1000 + 0.02);
+  }
+  // A radio that cannot be switched off, playing a hymn a few cents wrong, forever.
+  let radioStarted = false, radioLoud = false, radioStep = 0;
+  const HYMN = [0, 0, 7, 7, 9, 9, 7, -1, 5, 5, 4, 4, 2, 2, 0, -1];
+  function radio(loud) {
+    if (loud) radioLoud = true;
+    if (radioStarted) return;
+    radioStarted = true;
+    setInterval(() => {
+      const semi = HYMN[radioStep++ % HYMN.length];
+      if (semi < 0) return;
+      const wobble = (Math.random() - 0.5) * 70;                       // cents
+      const wrong = Math.random() < 0.12 ? (Math.random() < 0.5 ? 1 : -1) : 0; // a wrong note
+      const f = 220 * Math.pow(2, (semi + wrong) / 12 + wobble / 1200);
+      tone(f, 260, 2, radioLoud ? 0.22 : 0.05);
+    }, 300);
+  }
+
   const imports = {
     canvas: {
+      audio_tone: tone,
+      audio_radio: radio,
       fill_rect: (x, y, w, h, rgb) => { g.fillStyle = hex(rgb); g.fillRect(x, y, w, h); },
       blit: (sheet, sx, sy, w, h, dx, dy, rgb) => {
         if (!sheets[sheet]) return;
