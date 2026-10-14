@@ -33,6 +33,17 @@ count_outcomes :: proc(g: ^Game) -> Outcome_Counts {
 	return c
 }
 
+// How many lines she actually said; recovery lines that were never needed do not count.
+spoken_count :: proc(g: ^Game) -> int {
+	n := 0
+	for i in 0 ..< len(g.level.instructions) {
+		if g.spoken[i] {
+			n += 1
+		}
+	}
+	return n
+}
+
 verdict_tier :: proc(g: ^Game) -> Tier {
 	if !g.won {
 		return .Nowhere

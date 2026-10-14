@@ -221,7 +221,7 @@ draw_verdict :: proc() {
 	draw_wrapped(game.verdict_line(&state), x + 6, y + 22, 4, x + w - 6)
 	c := game.count_outcomes(&state)
 	buf: [64]u8
-	draw_text(fmt.bprintf(buf[:], "LINES OBEYED %d OF %d", c.obeyed, len(state.level.instructions)), x + 6, y + 62)
+	draw_text(fmt.bprintf(buf[:], "LINES OBEYED %d OF %d", c.obeyed, game.spoken_count(&state)), x + 6, y + 62)
 	draw_text(fmt.bprintf(buf[:], "PATIENCE %d  TURNS %d", max(state.patience, 0), state.turn), x + 6, y + 72)
 	draw_text("R TRY AGAIN   ENTER NEXT", x + 6, y + 88)
 }

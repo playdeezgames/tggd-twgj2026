@@ -351,3 +351,18 @@ finished_game_stays_finished :: proc(t: ^testing.T) {
 	play(&g, .Forward, 3)
 	testing.expect(t, g.turn == turn, "no further turns after the end")
 }
+
+@(test)
+unspoken_recovery_lines_do_not_count_against_you :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_2)
+	drive_to_fork(&g)
+	play(&g, .Forward, 6)
+	play(&g, .Turn_Left)
+	play(&g, .Forward)
+	play(&g, .Forward, 4)
+	play(&g, .Brake, 2)
+	c := count_outcomes(&g)
+	testing.expect(t, c.obeyed == spoken_count(&g), "every line she said was obeyed")
+	testing.expect(t, spoken_count(&g) < len(LEVEL_2_INSTRUCTIONS), "the east-end line was never needed")
+	testing.expect(t, verdict_tier(&g) == .Exactly_As_Told, "tier agrees")
+}
