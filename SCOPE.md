@@ -61,10 +61,14 @@ You drive. Grandma navigates from the passenger seat with landmark-based directi
 
 - **Font: DINOBYTE** (mby, CC BY 4.0), 6 by 8 CP437 sheet, from the vault's `Assets/dbyte_1x.png` and `dbyte_2x.png`. Chosen over the ROM 8x8 font because of the latter's provenance. Use the sheets unmodified and tint at draw time. Credit line for the itch page and credits screen:
   > DINOBYTE bitmap font by mby, https://mby.itch.io/dinobyte, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- **Tiles: Bountiful Bits + Bit Bonanza** (VEXED, CC0, both 10 by 10, 1-bit `no-background` sheets, tinted at draw time with a deliberately clashing palette; copy the sheets from the vault's `Assets/bountiful-bits/` and `Assets/bit-bonanza/`). Terrain, buildings and fences from Bountiful Bits `Natural` and `Civilized`; Grandma (People and Clothing) and the cow (Creatures) from Bit Bonanza. A top-down car does not appear in any Bit Bonanza sheet, so draw it in code. Credit lines:
+  > Bountiful Bits by VEXED, https://v3x3d.itch.io/bountiful-bits
+  > Bit Bonanza by VEXED, https://v3x3d.itch.io/bit-bonanza
+- 1-Bit Kingdom was considered and rejected as the main set (dungeon art, no roads or farm); it is only a candidate for a few "wrong" landmark tiles and GUI pieces. It is private-repo-only, so confirm this repo stays private before using it.
 - **View: top-down** (confirmed by the user).
 - Ship a licence note (from the vault's `Assets/dbyte-LICENSE.txt`) beside the font in the build.
 
 ## Open questions
 
-- Tile palette (the font is decided: see Decisions).
+- Exact tile picks (which Natural/Civilized tiles make the road, barn and fences; which People tile is Grandma; which Creatures tile is the cow).
 - Whether the late-input control joke is frustrating enough to hurt completion rates; playtest in Day 6.
