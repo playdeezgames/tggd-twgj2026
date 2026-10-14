@@ -134,6 +134,8 @@ Scripted solution: E 7 tiles, turn N at `(10,13)`, N 5 tiles, turn E at `(10,8)`
 | 5 | `After(4, Obeyed)` | "Straight down, straight down, you'll see the house." | Drive S to `(8,13)` and turn W | `Turn_At(Right, Corner_5)` | 12 | on cue: `Control(Input_Delay, 8)` |
 | 6 | `Near(Start, 2)` | "Here we are, here we are! ... Oh. This is my house." | Reach the start | `Reach(Goal)` | 10 | obey: "Well. You drove beautifully. Do come in." verdict delighted |
 
+Length decision: the loop stays at about 50 moves; the length is part of the joke. If playtest shows raters bailing, shorten the outer road before cutting content.
+
 Notes: the player drives the whole loop (the outer road returns to the start only via the new field road), which is the level's joke. The Hendersons' dead end is a recoverable wrong path with a patience cost, not a game over.
 
 ---
@@ -145,5 +147,4 @@ Notes: the player drives the whole loop (the outer road returns to the start onl
 
 ## Open questions
 
-- Level 3's loop is about 50 moves. If playtest shows it is too long, shorten the outer road before cutting content.
 - Two of three levels end at a place that is not what she named. Level 1 could end at the right house and save the "wrong place" for 2 and 3.
