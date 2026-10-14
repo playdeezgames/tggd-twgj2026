@@ -42,7 +42,8 @@ clearly wrong. She will be delighted either way.
 
 ## Credits
 
-- Game, code and design: TheGrumpyGameDev, with Claude (Anthropic).
+- Game, code and design: TheGrumpyGameDev, with Claude (Anthropic), who also chose the colours,
+  sizes and sounds.
 - Tiles: Bountiful Bits and Bit Bonanza by VEXED, https://v3x3d.itch.io/bountiful-bits and
   https://v3x3d.itch.io/bit-bonanza (CC0).
 - Font: DINOBYTE bitmap font by mby, https://mby.itch.io/dinobyte, CC BY 4.0
@@ -55,10 +56,12 @@ clearly wrong. She will be delighted either way.
 - **Code:** written by Claude (Anthropic), directed and reviewed by the developer.
 - **Design and writing:** Grandma's lines and the level designs were drafted with Claude and
   chosen by the developer.
-- **Art:** no AI-generated art. All tiles are premade CC0 packs (credited above); the car is
-  drawn in code.
-- **Sound:** no AI-generated audio. Effects come from jsfxr; the radio is a hand-written
-  synthesiser.
+- **Graphics:** the tiles are premade CC0 packs (credited above), but Claude chose and placed
+  them and chose the colours, sizes and layouts, and the car is drawn in code. Counted as AI
+  graphics.
+- **Sounds:** the effects were generated with jsfxr, but Claude chose the presets and settings
+  and made them worse, and the radio is a synthesiser written by Claude. Counted as AI sounds.
+- **Text:** Grandma's lines and the page copy were drafted with Claude.
 
 ## Devlog
 

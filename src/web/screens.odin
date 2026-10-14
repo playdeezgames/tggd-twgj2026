@@ -125,8 +125,8 @@ draw_about :: proc() {
 	draw_text("ABOUT AND CREDITS", 8, y)
 	y += 14
 	rows := [?]string {
-		"Game by TheGrumpyGameDev, with Claude (Anthropic). Code written by Claude. No AI art or audio.",
-		"Tiles: Bountiful Bits and Bit Bonanza by VEXED (CC0).",
+		"Game by TheGrumpyGameDev, with Claude (Anthropic). Code, colours, sizes and sound choices by Claude.",
+		"Tiles: Bountiful Bits and Bit Bonanza by VEXED (CC0), arranged and tinted by Claude.",
 		"Font: DINOBYTE bitmap font by mby, https://mby.itch.io/dinobyte, CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)",
 		"Sounds: jsfxr (sfxr.me), made worse. The radio is synthesised live.",
 		"Made for The WORST Game Jam. Theme: Grandma's Instructions.",
