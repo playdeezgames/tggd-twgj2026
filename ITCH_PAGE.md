@@ -28,7 +28,8 @@ clearly wrong. She will be delighted either way.
 - **Arrow keys (or WASD):** up drives forward one tile, left and right turn the car.
 - **Space:** brake. **H:** honk.
 - **M:** mute the radio. (Try it.)
-- **R:** restart the level. **1, 2, 3:** pick a level. **Enter:** next level after a verdict.
+- **R:** restart the level. **Esc:** back to the menu. **Enter:** next level after a verdict.
+- On the title screen, **1, 2, 3** jump straight to a level.
 - Keep Grandma's patience up. It drains as you drive, and every wrong turn costs you.
 - Her directions are well meant, so listen to the *intent*, not the words.
 

@@ -58,7 +58,8 @@ PALETTES := [?][Ink]u32 {
 }
 
 color :: proc(ink: Ink) -> u32 {
-	return PALETTES[state.palette % len(PALETTES)][ink]
+	palette := state.palette if screen == .Play else 0 // menus keep the first palette
+	return PALETTES[palette % len(PALETTES)][ink]
 }
 
 ctx: runtime.Context
@@ -74,8 +75,19 @@ main :: proc() {
 
 on_key :: proc(e: js.Event) {
 	context = ctx
+	audio_radio(false) // the first key press unlocks audio, and the radio never stops
+	if screen != .Play {
+		if menu_key(e.data.key.code) {
+			js.event_prevent_default()
+		}
+		return
+	}
 	cmd: game.Command
 	switch e.data.key.code {
+	case "Escape":
+		screen = .Title
+		js.event_prevent_default()
+		return
 	case "ArrowUp", "KeyW":
 		cmd = .Forward
 	case "ArrowLeft", "KeyA":
@@ -95,10 +107,17 @@ on_key :: proc(e: js.Event) {
 	case "KeyN", "Enter":
 		// On the verdict screen, Enter or N moves on (the last level starts over).
 		if game.finished(&state) {
-			if state.won {
-				level_index = (level_index + 1) % len(game.LEVELS)
+			if state.won && level_index == len(game.LEVELS) - 1 {
+				// She has been driven home three times: back to the title.
+				level_index = 0
+				state = game.new_game(game.LEVELS[0])
+				screen = .Title
+			} else {
+				if state.won {
+					level_index += 1
+				}
+				state = game.new_game(game.LEVELS[level_index])
 			}
-			state = game.new_game(game.LEVELS[level_index])
 		}
 		js.event_prevent_default()
 		return
@@ -111,7 +130,6 @@ on_key :: proc(e: js.Event) {
 		return
 	}
 	js.event_prevent_default()
-	audio_radio(false) // the first key press unlocks audio, and the radio never stops
 	game.step(&state, cmd)
 	for i in 0 ..< state.sound_count {
 		play_sound(state.sounds[i])
@@ -183,6 +201,10 @@ landmark_art :: proc(k: game.Landmark_Kind) -> (sheet: Sheet, col, row: i32, ink
 }
 
 draw :: proc() {
+	if screen != .Play {
+		draw_screen()
+		return
+	}
 	fill_rect(0, 0, SCREEN_W, SCREEN_H, color(.Paper))
 	for y in 0 ..< game.H {
 		for x in 0 ..< game.W {
@@ -238,17 +260,19 @@ draw_tile :: proc(sheet: Sheet, col, row: i32, x, y: int, ink: Ink) {
 // The car is code-drawn: no top-down vehicle exists in the chosen tile sets. It is an ill-fitting
 // body with a mismatched boot and wheels that do not agree on a colour.
 draw_car :: proc() {
-	px := i32(state.car.x) * TILE
-	py := i32(state.car.y) * TILE
+	draw_car_at(i32(state.car.x) * TILE, i32(state.car.y) * TILE, state.heading)
+}
+
+draw_car_at :: proc(px, py: i32, heading: game.Heading) {
 	body := color(.Car)
 	boot := color(.Barn)
 	wheel := color(.Tree)
-	vertical := state.heading == .North || state.heading == .South
+	vertical := heading == .North || heading == .South
 	if vertical {
 		fill_rect(px + 2, py + 1, 6, 8, body)
 		fill_rect(px + 1, py + 2, 1, 2, wheel)
 		fill_rect(px + 8, py + 6, 1, 2, wheel)
-		if state.heading == .North {
+		if heading == .North {
 			fill_rect(px + 3, py + 8, 4, 2, boot)
 			fill_rect(px + 4, py, 2, 1, color(.House))
 		} else {
@@ -259,7 +283,7 @@ draw_car :: proc() {
 		fill_rect(px + 1, py + 2, 8, 6, body)
 		fill_rect(px + 2, py + 1, 2, 1, wheel)
 		fill_rect(px + 6, py + 8, 2, 1, wheel)
-		if state.heading == .East {
+		if heading == .East {
 			fill_rect(px, py + 3, 2, 4, boot)
 			fill_rect(px + 9, py + 4, 1, 2, color(.House))
 		} else {
@@ -292,12 +316,13 @@ draw_text :: proc(s: string, x, y: i32) {
 }
 
 // Greedy word wrap into at most `lines` rows of the screen width (6 px per glyph).
-draw_wrapped :: proc(s: string, x, y: i32, lines: int, width: i32 = SCREEN_W) {
+// Returns the number of rows it used.
+draw_wrapped :: proc(s: string, x, y: i32, lines: int, width: i32 = SCREEN_W) -> int {
 	cols := int((width - x) / 6)
 	start := 0
 	for row in 0 ..< lines {
 		if start >= len(s) {
-			return
+			return row
 		}
 		end := min(start + cols, len(s))
 		if end < len(s) {
@@ -314,6 +339,7 @@ draw_wrapped :: proc(s: string, x, y: i32, lines: int, width: i32 = SCREEN_W) {
 			start += 1
 		}
 	}
+	return lines
 }
 
 // Grandma, scaled to an awkward 3x and parked slightly off the corner of the screen.
