@@ -1,6 +1,6 @@
 # Instruction engine design
 
-Design for the heart of Grandma Drives. See `SCOPE.md` for the game. Sketches are Odin-flavoured but not final.
+Design for the heart of Turn Left at the Cow. See `SCOPE.md` for the game. Sketches are Odin-flavoured but not final.
 
 ## Goals
 

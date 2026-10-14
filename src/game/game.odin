@@ -1,4 +1,4 @@
-// Pure game rules for Grandma Drives. No platform imports, so it tests natively.
+// Pure game rules for Turn Left at the Cow. No platform imports, so it tests natively.
 package game
 
 W :: 24

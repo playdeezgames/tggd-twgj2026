@@ -1,4 +1,4 @@
-Sound effects for Grandma Drives.
+Sound effects for Turn Left at the Cow.
 
 Generated with jsfxr (https://sfxr.me), the browser port of Dr Petter's sfxr, using its preset
 generators (click, tone, hitHurt, pickupCoin, explosion, jump, powerUp) with a fixed random seed,

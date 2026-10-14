@@ -31,7 +31,7 @@ Odin is at `/home/yermom/ODIN/odin` (`ODIN=...` overrides). Run one test: `odin 
 - Jam runs Oct 14 to Oct 26, 2026 (Pacific); the page also says cutoff 2026-10-27 06:59 UTC. Treat the evening of Oct 26 Pacific as the deadline. Voting to Nov 9.
 - Web builds strongly recommended. Premade assets allowed with credit on the game page. AI content allowed if disclosed on the game page (art, code, sound).
 - Must not harm the computer (no fake viruses, file deletion), flashing lights need a warning, "bad" must not be offensive, hateful, sexual or shocking.
-- Chosen game: "Grandma Drives (Turn Left at the Cow)". Scope is in `SCOPE.md`.
+- Chosen game: "Turn Left at the Cow" (itch slug `turn-left-at-the-cow`). Scope is in `SCOPE.md`.
 
 ## Knowledge vault
 

@@ -1,6 +1,6 @@
-# Grandma Drives (Turn Left at the Cow): scope
+# Turn Left at the Cow: scope
 
-Working title. Jam: The WORST Game Jam, theme "Grandma's Instructions". Deadline: evening of Oct 26, 2026 Pacific. Stack: Odin `js_wasm32`, 2D canvas via a JS shim (see the vault's `Tech/Odin wasm recipe.md`).
+Title (decided). Itch.io slug: `turn-left-at-the-cow`. Internally also called "Grandma Drives". Jam: The WORST Game Jam, theme "Grandma's Instructions". Deadline: evening of Oct 26, 2026 Pacific. Stack: Odin `js_wasm32`, 2D canvas via a JS shim (see the vault's `Tech/Odin wasm recipe.md`).
 
 ## Pitch
 
