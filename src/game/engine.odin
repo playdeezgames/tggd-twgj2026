@@ -43,6 +43,7 @@ Expect_Kind :: enum u8 {
 	Face,    // player turns and ends facing `heading` while inside `region`
 	Stop,    // car stays still for `n` turns inside `region`
 	Honk,    // player honks inside `region`
+	Avoid,   // car is inside `region`: counted as wrong
 }
 
 Expect :: struct {
@@ -57,18 +58,28 @@ Effect_Kind :: enum u8 {
 	Say,
 	Patience,
 	Score,
+	Control,         // `flag` for `n` turns
+	Turn_Around,     // free U-turn, to recover from a dead end
+	Move_Landmark,   // `landmark` jumps to `pos`
+	Remove_Landmark, // `landmark` vanishes
+	Walk_Landmark,   // `landmark` starts walking `path`, one tile per player move
 }
 
 Effect :: struct {
-	kind: Effect_Kind,
-	n:    int,
-	text: string,
+	kind:     Effect_Kind,
+	n:        int,
+	text:     string,
+	flag:     Control_Flag,
+	landmark: Landmark_Kind,
+	pos:      [2]int,
+	path:     []([2]int),
 }
 
 Instruction :: struct {
 	text:       string, // what Grandma says when this becomes active
 	intent:     string, // what she actually means (documentation for authors)
 	cue:        Cue,
+	on_start:   []Effect, // run when she speaks the line
 	expects:    []Expect, // any one satisfied counts as obeying
 	timeout:    int,      // turns before she gives up waiting; 0 means never
 	on_obey:    []Effect,
@@ -90,6 +101,18 @@ apply_effects :: proc(g: ^Game, effects: []Effect) {
 			g.patience += e.n
 		case .Score:
 			g.score += e.n
+		case .Control:
+			g.control_turns[e.flag] = max(g.control_turns[e.flag], e.n)
+		case .Turn_Around:
+			g.heading = Heading((int(g.heading) + 2) % 4)
+		case .Move_Landmark:
+			g.landmarks[e.landmark].pos = e.pos
+			g.landmarks[e.landmark].path = nil
+		case .Remove_Landmark:
+			g.landmarks[e.landmark].present = false
+		case .Walk_Landmark:
+			g.landmarks[e.landmark].path = e.path
+			g.landmarks[e.landmark].path_i = 0
 		}
 	}
 }
@@ -129,6 +152,7 @@ fire_cue :: proc(g: ^Game) {
 		g.active = i
 		g.since_active = 0
 		g.said = inst.text
+		apply_effects(g, inst.on_start)
 		return
 	}
 }
@@ -150,7 +174,7 @@ resolve :: proc(g: ^Game, outcome: Outcome) {
 }
 
 // Check the active instruction against this turn's action.
-evaluate_active :: proc(g: ^Game, a: Action) {
+evaluate_active :: proc(g: ^Game, a: ^Action) {
 	if g.active == -1 {
 		return
 	}
@@ -181,6 +205,8 @@ evaluate_active :: proc(g: ^Game, a: Action) {
 			obeyed ||= inside && g.still >= e.n
 		case .Honk:
 			obeyed ||= inside && a.honk
+		case .Avoid:
+			wrong ||= inside
 		}
 	}
 	switch {

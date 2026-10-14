@@ -19,16 +19,11 @@ Command :: enum u8 {
 	Horn,
 }
 
+// Scenery. Things Grandma can name are landmarks (landmarks.odin), not tiles.
 Tile :: enum u8 {
 	Grass,
 	Road,
 	Tree,
-	Barn,
-	Ruin,
-	Cow,
-	House,
-	Yellow_House,
-	Oak,
 	Field,
 	Pond,
 }
@@ -56,6 +51,10 @@ Game :: struct {
 	lost:     bool,
 	score:    int,
 
+	landmarks:     [Landmark_Kind]Landmark,
+	control_turns: [Control_Flag]int, // turns each sabotage flag has left
+	buffered:      Maybe(Command),    // a steering input held back by Input_Delay
+
 	// Instruction engine state (engine.odin).
 	active:         int, // index into level.instructions, or -1
 	since_active:   int, // turns since the active instruction began
@@ -79,12 +78,6 @@ tile_from_char :: proc(c: u8) -> Tile {
 	switch c {
 	case '=', 'S', 'G': return .Road
 	case 'T': return .Tree
-	case 'B': return .Barn
-	case '~': return .Ruin
-	case 'C': return .Cow
-	case 'H': return .House
-	case 'Y': return .Yellow_House
-	case 'O': return .Oak
 	case ',': return .Field
 	case 'W': return .Pond
 	}
@@ -96,7 +89,11 @@ new_game :: proc(level: ^Level) -> Game {
 	assert(len(level.instructions) <= MAX_INSTRUCTIONS)
 	for y in 0 ..< H {
 		for x in 0 ..< W {
-			g.tiles[y][x] = tile_from_char(level.rows[y][x])
+			c := level.rows[y][x]
+			g.tiles[y][x] = tile_from_char(c)
+			if kind, ok := landmark_from_char(c); ok {
+				g.landmarks[kind] = Landmark{present = true, pos = {x, y}}
+			}
 		}
 	}
 	fire_cue(&g)
@@ -111,18 +108,77 @@ passable :: proc(g: ^Game, p: [2]int) -> bool {
 	return in_bounds(p) && g.tiles[p.y][p.x] == .Road
 }
 
-// One player command, one turn: apply it, evaluate the active instruction (engine.odin), fire the next cue, drain patience.
+// One player command, one turn: sabotage the input, apply it, evaluate the active instruction
+// (engine.odin), fire the next cue, move landmarks and drain patience.
 step :: proc(g: ^Game, cmd: Command) {
 	if g.won || g.lost {
 		return
 	}
+	cmd := cmd
+	if g.control_turns[.Flip_Left_Right] > 0 {
+		#partial switch cmd {
+		case .Turn_Left: cmd = .Turn_Right
+		case .Turn_Right: cmd = .Turn_Left
+		}
+	}
+	if g.control_turns[.Swap_Brake_Horn] > 0 {
+		#partial switch cmd {
+		case .Brake: cmd = .Horn
+		case .Horn: cmd = .Brake
+		}
+	}
+	// Input_Delay: a steering input is held back and applied after the next command.
+	late := g.buffered
+	g.buffered = nil
+	if g.control_turns[.Input_Delay] > 0 && (cmd == .Turn_Left || cmd == .Turn_Right) {
+		g.buffered = cmd
+		cmd = .Brake
+	}
 	a: Action
+	apply_command(g, cmd, &a)
+	if late != nil {
+		apply_command(g, late.?, &a)
+	}
+	for flag in Control_Flag {
+		g.control_turns[flag] = max(0, g.control_turns[flag] - 1)
+	}
+	g.turn += 1
+	g.since_active += 1
+	g.since_resolved += 1
+	g.still = a.moved ? 0 : g.still + 1
+	if a.moved {
+		walk_landmarks(g)
+	}
+	evaluate_active(g, &a)
+	fire_cue(g)
+	if g.turn % DRAIN_EVERY == 0 {
+		g.patience -= 1
+	}
+	if g.car == g.level.goal && g.active == -1 {
+		g.won = true
+	} else if g.patience <= 0 {
+		g.lost = true
+	}
+}
+
+turn_heading :: proc(g: ^Game, t: Turn) {
+	repeats := 2 if g.control_turns[.Sticky_Turn] > 0 else 1
+	for _ in 0 ..< repeats {
+		switch t {
+		case .Left: g.heading = Heading((int(g.heading) + 3) % 4)
+		case .Right: g.heading = Heading((int(g.heading) + 1) % 4)
+		case .None:
+		}
+	}
+}
+
+apply_command :: proc(g: ^Game, cmd: Command, a: ^Action) {
 	switch cmd {
 	case .Turn_Left:
-		g.heading = Heading((int(g.heading) + 3) % 4)
+		turn_heading(g, .Left)
 		a.turn = .Left
 	case .Turn_Right:
-		g.heading = Heading((int(g.heading) + 1) % 4)
+		turn_heading(g, .Right)
 		a.turn = .Right
 	case .Forward:
 		next := g.car + DELTA[g.heading]
@@ -133,19 +189,5 @@ step :: proc(g: ^Game, cmd: Command) {
 	case .Brake:
 	case .Horn:
 		a.honk = true
-	}
-	g.turn += 1
-	g.since_active += 1
-	g.since_resolved += 1
-	g.still = a.moved ? 0 : g.still + 1
-	evaluate_active(g, a)
-	fire_cue(g)
-	if g.turn % DRAIN_EVERY == 0 {
-		g.patience -= 1
-	}
-	if g.car == g.level.goal {
-		g.won = true
-	} else if g.patience <= 0 {
-		g.lost = true
 	}
 }

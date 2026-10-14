@@ -72,6 +72,11 @@ on_key :: proc(e: js.Event) {
 		state = game.new_game(game.LEVELS[level_index])
 		js.event_prevent_default()
 		return
+	case "Digit1", "Digit2":
+		level_index = 0 if e.data.key.code == "Digit1" else 1
+		state = game.new_game(game.LEVELS[level_index])
+		js.event_prevent_default()
+		return
 	case:
 		return
 	}
@@ -87,20 +92,26 @@ step :: proc(dt: f64, c: runtime.Context) -> bool {
 	return true
 }
 
-// Tile picks, as (sheet, column, row). Adjust after looking at the sheets.
+// Tile and landmark picks, as (sheet, column, row). Adjust after looking at the sheets.
 tile_art :: proc(t: game.Tile) -> (sheet: Sheet, col, row: i32, ink: u32) {
 	switch t {
-	case .Grass:        return .Natural, 1, 5, GRASS_INK
-	case .Road:         return .Natural, 9, 3, ROAD_INK
-	case .Tree:         return .Natural, 24, 2, TREE_INK
-	case .Oak:          return .Natural, 1, 18, TREE_INK
+	case .Grass: return .Natural, 1, 5, GRASS_INK
+	case .Road:  return .Natural, 9, 3, ROAD_INK
+	case .Tree:  return .Natural, 24, 2, TREE_INK
+	case .Field: return .Natural, 1, 7, GRASS_INK
+	case .Pond:  return .Natural, 1, 13, HOUSE_INK
+	}
+	return .Natural, 0, 0, 0
+}
+
+landmark_art :: proc(k: game.Landmark_Kind) -> (sheet: Sheet, col, row: i32, ink: u32) {
+	switch k {
 	case .Barn:         return .Civilized, 17, 2, BARN_INK
 	case .Ruin:         return .Natural, 1, 19, BARN_INK
+	case .Cow:          return .Natural, 1, 14, TEXT_INK
+	case .Oak:          return .Natural, 1, 18, TREE_INK
 	case .House:        return .Civilized, 2, 1, HOUSE_INK
 	case .Yellow_House: return .Civilized, 3, 1, ROAD_INK
-	case .Field:        return .Natural, 1, 7, GRASS_INK
-	case .Pond:         return .Natural, 1, 13, HOUSE_INK
-	case .Cow:          return .Natural, 1, 14, TEXT_INK
 	}
 	return .Natural, 0, 0, 0
 }
@@ -114,6 +125,12 @@ draw :: proc() {
 				draw_tile(.Natural, 1, 5, x, y, GRASS_INK)
 			}
 			draw_tile(sheet, col, row, x, y, ink)
+		}
+	}
+	for lm, kind in state.landmarks {
+		if lm.present {
+			sheet, col, row, ink := landmark_art(kind)
+			draw_tile(sheet, col, row, lm.pos.x, lm.pos.y, ink)
 		}
 	}
 	draw_car()
@@ -149,7 +166,7 @@ draw_hud :: proc() {
 	case state.lost:
 		draw_text("SHE HAS GONE QUIET. R TO RESTART", 2, top + 25)
 	case:
-		draw_text("ARROWS DRIVE, SPACE BRAKES, H HONKS", 2, top + 25)
+		draw_text("ARROWS DRIVE, SPACE BRAKES, H HONKS, 1 2 LEVEL", 2, top + 25)
 	}
 }
 

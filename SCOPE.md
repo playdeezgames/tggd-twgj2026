@@ -70,5 +70,5 @@ You drive. Grandma navigates from the passenger seat with landmark-based directi
 
 ## Open questions
 
-- Exact tile picks (which Natural/Civilized tiles make the road, barn and fences; which People tile is Grandma; which Creatures tile is the cow).
+- Exact tile picks are deferred to the Day 5 art pass: the current picks in `src/web/web.odin` are first guesses and the cow is a placeholder.
 - Whether the late-input control joke is frustrating enough to hurt completion rates; playtest in Day 6.

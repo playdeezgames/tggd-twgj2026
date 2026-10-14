@@ -179,8 +179,12 @@ Levels are Odin compile-time constants. Regions are named rectangles, so an inst
 - Free-text parsing. Grandma's lines are strings; matching is entirely by the authored expectations.
 - Branching story state beyond `Goto`. If a level needs more, split it into two levels.
 
+## Decisions
+
+- **One active instruction at a time.** A second slot is only worth building if level 3 playtests flat.
+- **`Reverse_Expects` affects pending instructions only,** never an already-obeyed one, so outcomes and the verdict stay deterministic. It is not used by any level yet.
+- **`Input_Delay` holds back steering only** (left and right); the horn and brake respond immediately. The held turn lands after the next command.
+
 ## Open questions
 
-- Is one active instruction at a time enough, or should Grandma sometimes speak two overlapping lines? Overlap is funnier but multiplies authoring work and test cases. Start with one, add a second slot only if level 3 needs it.
-- Should `Reverse_Expects` also apply to *already obeyed* instructions as a joke retcon? Probably not; it breaks determinism of the verdict.
-- Does the 1-turn input buffer also delay the horn and brake, or only steering? Steering only unless playtests say otherwise.
+None at the moment.

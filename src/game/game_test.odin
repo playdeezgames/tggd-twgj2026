@@ -122,3 +122,94 @@ no_instruction_is_spoken_twice :: proc(t: ^testing.T) {
 	}
 	testing.expect(t, count == len(LEVEL_1_INSTRUCTIONS), "each spoken once")
 }
+
+@(private = "file")
+drive_to_fork :: proc(g: ^Game) {
+	play(g, .Forward, 7)
+	play(g, .Turn_Right)
+	play(g, .Forward, 4)
+	play(g, .Turn_Left)
+}
+
+@(test)
+level_2_solution_reaches_the_church :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_2)
+	drive_to_fork(&g)
+	play(&g, .Forward, 6)
+	play(&g, .Turn_Left) // held back by the delay
+	play(&g, .Forward) // the turn lands after this move, at x = 7
+	testing.expect(t, g.heading == .South, "the late turn landed")
+	play(&g, .Forward, 4)
+	play(&g, .Brake, 2)
+	for i in 0 ..< 5 {
+		testing.expectf(t, g.outcomes[i] == .Obeyed, "instruction %d outcome %v", i, g.outcomes[i])
+	}
+	testing.expect(t, g.won, "won")
+	testing.expect(t, g.said == "Lovely. Now, which funeral is this?", "church line")
+}
+
+@(test)
+cow_walks_ahead_one_tile_per_move :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_2)
+	drive_to_fork(&g)
+	testing.expect(t, g.landmarks[.Cow].pos == [2]int{10, 8}, "starts in its field")
+	play(&g, .Forward) // enters the cue region at (13,10); the walk starts with the next move
+	testing.expect(t, g.active == 2, "cow line active")
+	testing.expect(t, g.landmarks[.Cow].pos == [2]int{10, 8}, "not moving yet")
+	play(&g, .Forward)
+	testing.expect(t, g.landmarks[.Cow].pos == [2]int{10, 9}, "cow left the field")
+	play(&g, .Forward)
+	testing.expect(t, g.landmarks[.Cow].pos == [2]int{10, 10}, "cow joined the road")
+	play(&g, .Brake) // a turn without moving does not move the cow
+	testing.expect(t, g.landmarks[.Cow].pos == [2]int{10, 10}, "cow waits for the car")
+}
+
+@(test)
+first_left_is_a_dead_end_that_turns_you_around :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_2)
+	drive_to_fork(&g)
+	play(&g, .Forward, 4) // now at (10,10)
+	play(&g, .Turn_Left) // held back
+	play(&g, .Forward) // to (9,10); the turn lands: facing south
+	play(&g, .Forward) // into the dead end
+	testing.expect(t, g.outcomes[3] == .Wrong, "marked wrong")
+	testing.expect(t, g.heading == .North, "turned around")
+	testing.expect(t, g.car == [2]int{9, 11}, "at the dead end")
+	play(&g, .Forward)
+	testing.expect(t, g.car == [2]int{9, 10}, "back on the road")
+}
+
+@(test)
+east_branch_dead_end_recovers :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_2)
+	play(&g, .Forward, 7)
+	play(&g, .Turn_Right)
+	play(&g, .Forward, 4)
+	play(&g, .Turn_Right) // east instead of west
+	testing.expect(t, g.outcomes[1] == .Wrong, "wrong")
+	play(&g, .Forward, 6)
+	testing.expect(t, g.car == [2]int{20, 10}, "at the east end")
+	testing.expect(t, g.heading == .West, "turned around by the line")
+}
+
+@(test)
+control_flags_sabotage_input :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_1)
+	g.control_turns[.Flip_Left_Right] = 2
+	play(&g, .Turn_Left)
+	testing.expect(t, g.heading == .East, "left became right")
+	g.control_turns[.Flip_Left_Right] = 0
+	g.control_turns[.Sticky_Turn] = 1
+	play(&g, .Turn_Right)
+	testing.expect(t, g.heading == .West, "sticky turn turned twice")
+}
+
+@(test)
+input_delay_applies_steering_after_the_next_command :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_1)
+	g.control_turns[.Input_Delay] = 5
+	play(&g, .Turn_Right)
+	testing.expect(t, g.heading == .North, "nothing yet")
+	play(&g, .Brake)
+	testing.expect(t, g.heading == .East, "applied after the next command")
+}
