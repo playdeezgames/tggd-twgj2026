@@ -72,7 +72,7 @@ Patience 30. Start `(21,14)` facing W. Goal `(7,14)` (the church door).
 .............~..........
 ......===============...
 .......===....=.........
-.......===....=H....T...
+.......==.....=H....T...
 .......=......=.........
 ......YG......=======S..
 ........................
@@ -80,7 +80,7 @@ Patience 30. Start `(21,14)` facing W. Goal `(7,14)` (the church door).
 
 Landmarks: Hendersons' `(15,12)`, Barn ruin `(13,9)` (it burned down in 1987; `exists = false`), Cow `(10,8)` in the field, Church `(6,14)`.
 
-Three side roads leave the westbound road at `x = 9, 8, 7`. All three reach the church: `x = 7` goes straight down, `x = 8` and `x = 9` join it at `(7,12)`. They differ in length and in how long the steering delay is still active.
+Three side roads leave the westbound road at `x = 9, 8, 7`. `x = 7` goes straight down to the church and `x = 8` joins it at `(7,12)`. **`x = 9` is a dead end** two tiles long; taking it fires `Turn_Around` and costs patience.
 
 Scripted solution: W 7 tiles, turn N at `(14,14)`, N 4 tiles, turn W at `(14,10)`, W 7 tiles, turn S at `(7,10)`, S 4 tiles to the goal. About 22 moves.
 
@@ -89,7 +89,7 @@ Scripted solution: W 7 tiles, turn N at `(14,14)`, N 4 tiles, turn W at `(14,10)
 | 1 | `At_Start` | "Down to the end, then right at the Hendersons'." | Turn N at `(14,14)` | `Turn_At(Right, Corner_1)` | 10 | wrong: `Patience(-3)` |
 | 2 | `After(1, Obeyed)` | "Left where the barn used to be." | Turn W at the fork `(14,10)`; the ruin tile `~` marks it | `Turn_At(Left, Fork)` | 8 | obey: `Control(Input_Delay, 14)`, "Let's get a move on!" |
 | 3 | `At_Region(Row10_West)` | "Where's that cow got to? Follow the cow." | Cow walks onto the road and drives W ahead of the car | `Pass(Cow)` | 10 | on cue: `Walk_Landmark(Cow, path)` from `(10,10)` W along the road, turning S at `x = 7`; obey: `Score(+1)` |
-| 4 | `After_Turns(6)` | "Second left. No, third. Oh, you've gone past it." | Any of the three lefts works | `Turn_At(Left, Left_2)` or `Turn_At(Left, Left_3)` | 12 | on cue: `Reverse_Expects(3)`; wrong: `Patience(-3)` |
+| 4 | `After_Turns(6)` | "Second left. No, third. Oh, you've gone past it." | The second or third left works; the first is the dead end | `Turn_At(Left, Left_2)` or `Turn_At(Left, Left_3)` | 12 | on cue: `Reverse_Expects(3)`; wrong (took `Left_1`): `Patience(-3)`, "Not that one, that's Mr. Pratt's drive.", `Turn_Around` at the end, `Patience(-6)` |
 | 5 | `At_Region(Church_Front)` | "Park by the place, dear. Mind the step." | Stop at the door | `Stop(2)` in `Church_Front` | 8 | obey: "Lovely. Now, which funeral is this?" verdict delighted |
 
 Notes: with the delay active, the turn input has to be pressed one tile early, so the player has to learn the delay from the first of the three lefts. The cow is a literal guide, but nothing says to trust it.
@@ -145,6 +145,5 @@ Notes: the player drives the whole loop (the outer road returns to the start onl
 
 ## Open questions
 
-- Level 2's three lefts all work. That keeps it forgiving, but it may make the "second left, no, third" line feel like a non-event. A variation is to make the `x = 9` side road a dead end that needs a `Turn_Around`.
 - Level 3's loop is about 50 moves. If playtest shows it is too long, shorten the outer road before cutting content.
 - Two of three levels end at a place that is not what she named. Level 1 could end at the right house and save the "wrong place" for 2 and 3.
