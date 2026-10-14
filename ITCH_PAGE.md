@@ -60,6 +60,10 @@ clearly wrong. She will be delighted either way.
 - **Sound:** no AI-generated audio. Effects come from jsfxr; the radio is a hand-written
   synthesiser.
 
+## Devlog
+
+None. The developer decided not to post a devlog for this game.
+
 ## Page settings (the developer's)
 
 - Kind of project: HTML, "This file will be played in the browser" ticked on the `html` upload.
