@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grandma Drives</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #14052e; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { image-rendering: pixelated; width: min(100vw, calc(100vh * 240 / 192)); height: auto; }
+</style>
+</head>
+<body>
+<canvas id="screen" width="240" height="192"></canvas>
+<script type="text/javascript" src="odin.js"></script>
+<script type="text/javascript">
+(function () {
+  const canvas = document.getElementById("screen");
+  const g = canvas.getContext("2d");
+  g.imageSmoothingEnabled = false;
+
+  // Sheet order matches `Sheet` in src/web/web.odin.
+  const files = ["natural", "civilized", "people", "creatures", "font"];
+  const sheets = files.map(() => null);
+  files.forEach((name, i) => {
+    const img = new Image();
+    img.onload = () => { sheets[i] = img; };
+    img.src = "assets/" + name + ".png";
+  });
+
+  const hex = (rgb) => "#" + (rgb >>> 0).toString(16).padStart(6, "0");
+  const tinted = new Map();
+  function tintedSheet(i, rgb) {
+    const key = i + ":" + rgb;
+    let c = tinted.get(key);
+    if (!c) {
+      const img = sheets[i];
+      c = document.createElement("canvas");
+      c.width = img.width; c.height = img.height;
+      const t = c.getContext("2d");
+      t.drawImage(img, 0, 0);
+      t.globalCompositeOperation = "source-in";
+      t.fillStyle = hex(rgb);
+      t.fillRect(0, 0, c.width, c.height);
+      tinted.set(key, c);
+    }
+    return c;
+  }
+
+  const imports = {
+    canvas: {
+      fill_rect: (x, y, w, h, rgb) => { g.fillStyle = hex(rgb); g.fillRect(x, y, w, h); },
+      blit: (sheet, sx, sy, w, h, dx, dy, rgb) => {
+        if (!sheets[sheet]) return;
+        g.drawImage(tintedSheet(sheet, rgb), sx, sy, w, h, dx, dy, w, h);
+      },
+    },
+  };
+
+  window.addEventListener("load", () => {
+    odin.runWasm("game.wasm", null, imports);
+  });
+})();
+</script>
+</body>
+</html>

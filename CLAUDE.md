@@ -4,7 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-This repo is empty apart from `README.md`. It is the entry for the itch.io jam "Your Worst Ideas" (https://itch.io/jam/your-worst-ideas), remote `https://github.com/playdeezgames/tggd-twgj2026.git`. The project is in the **ideation phase**: there is no source, build, lint, or test tooling yet. Update this file once a stack and commands exist.
+Entry for the itch.io jam "The WORST Game Jam" (https://itch.io/jam/your-worst-ideas), remote `https://github.com/playdeezgames/tggd-twgj2026.git`. Planning docs: `SCOPE.md` (game and decisions), `ENGINE.md` (instruction engine design), `LEVELS.md` (the three levels). The Odin/wasm scaffold exists: level 1 renders and the car drives, but the instruction engine is not implemented yet (`game.step` only moves the car and drains patience).
+
+## Commands
+
+```bash
+./build.sh   # odin build to build/web (game.wasm, odin.js, index.html, assets/)
+./serve.sh   # http://localhost:8000 serving build/web (wasm needs http)
+./test.sh    # native tests of src/game, plus wasm type-checks of both packages
+```
+
+Odin is at `/home/yermom/ODIN/odin` (`ODIN=...` overrides). Run one test: `odin test src/game -collection:tggd=src -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_NAMES=game.level_1_scripted_solution_wins`.
+
+## Architecture
+
+- `src/game` (package `game`): pure rules, no platform imports, so it tests natively. Level data is in `levels.odin`; `step(game, command)` is one turn. Tests (`#+build !js`) include each level's scripted solution.
+- `src/web` (package `main`, `#+build js`): input, frame loop, and drawing. It imports `game` through `-collection:tggd=src`.
+- `web/index.html`: the canvas shim. Odin calls two imports, `fill_rect` and `blit(sheet, sx, sy, w, h, dx, dy, rgb)`. JS loads the PNG sheets in `assets/` and tints them at draw time (sheet order must match `Sheet` in `web.odin`). The art is 1-bit, so all colour is tint.
+- Screen is 240 by 192 logical pixels: a 24 by 16 map of 10 px tiles plus a 4-row HUD in 6 by 8 DINOBYTE glyphs. CSS scales it with `image-rendering: pixelated`.
+- The car is code-drawn; no top-down vehicle exists in the chosen tile sets.
 
 ## Jam rules ("The WORST Game Jam", theme "Grandma's Instructions")
 
