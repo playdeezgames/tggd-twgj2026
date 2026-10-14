@@ -12,6 +12,7 @@ Entry for the itch.io jam "The WORST Game Jam" (https://itch.io/jam/your-worst-i
 ./build.sh   # odin build to build/web (game.wasm, odin.js, index.html, assets/)
 ./serve.sh   # http://localhost:8000 serving build/web (wasm needs http)
 ./test.sh    # native tests of src/game, plus wasm type-checks of both packages
+./shippit.sh # test, build, zip; publishes to itch.io ONLY with --push and only when the user says to
 ```
 
 Odin is at `/home/yermom/ODIN/odin` (`ODIN=...` overrides). Run one test: `odin test src/game -collection:tggd=src -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_NAMES=game.level_1_scripted_solution_wins`.
@@ -31,7 +32,7 @@ Odin is at `/home/yermom/ODIN/odin` (`ODIN=...` overrides). Run one test: `odin 
 - Jam runs Oct 14 to Oct 26, 2026 (Pacific); the page also says cutoff 2026-10-27 06:59 UTC. Treat the evening of Oct 26 Pacific as the deadline. Voting to Nov 9.
 - Web builds strongly recommended. Premade assets allowed with credit on the game page. AI content allowed if disclosed on the game page (art, code, sound).
 - Must not harm the computer (no fake viruses, file deletion), flashing lights need a warning, "bad" must not be offensive, hateful, sexual or shocking.
-- Chosen game: "Turn Left at the Cow" (itch slug `turn-left-at-the-cow`). Scope is in `SCOPE.md`.
+- Chosen game: "Turn Left at the Cow" (https://thegrumpygamedev.itch.io/turn-left-at-the-cow). Scope is in `SCOPE.md`.
 
 ## Knowledge vault
 
