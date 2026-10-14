@@ -213,3 +213,61 @@ input_delay_applies_steering_after_the_next_command :: proc(t: ^testing.T) {
 	play(&g, .Brake)
 	testing.expect(t, g.heading == .East, "applied after the next command")
 }
+
+@(private = "file")
+// Level 3 starts with flipped steering, so the key pressed is the opposite of the turn the car makes.
+l3_to_mouth :: proc(g: ^Game) {
+	play(g, .Forward, 5) // (10,13)
+	play(g, .Turn_Right) // flipped: the car turns left, N
+	play(g, .Forward, 5) // (10,8)
+	play(g, .Turn_Left) // flipped: E
+	play(g, .Forward, 8) // (18,8)
+	play(g, .Turn_Right) // flipped: N
+	play(g, .Forward, 5) // (18,3)
+	play(g, .Turn_Right) // flipped: W
+	play(g, .Forward, 10) // (8,3)
+}
+
+@(test)
+level_3_solution_comes_home :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_3)
+	l3_to_mouth(&g)
+	testing.expect(t, g.tiles[8][8] == .Road, "the field is road once she remembers it")
+	testing.expect(t, g.palette == 3, "retinted")
+	play(&g, .Turn_Right) // flipped: S
+	play(&g, .Forward, 9) // (8,12)
+	play(&g, .Turn_Left) // flipped and delayed: pressed a tile early
+	play(&g, .Forward) // (8,13), then the held turn lands: W
+	testing.expect(t, g.heading == .West, "the late turn landed")
+	play(&g, .Forward, 5)
+	for i in ([?]int{0, 1, 2, 3, 4, 7}) {
+		testing.expectf(t, g.outcomes[i] == .Obeyed, "instruction %d outcome %v", i, g.outcomes[i])
+	}
+	testing.expect(t, !g.spoken[5] && !g.spoken[6], "recovery lines unused")
+	testing.expect(t, g.won, "home")
+	testing.expect(t, g.said == "Well. You drove beautifully. Do come in.", "closing line")
+}
+
+@(test)
+level_3_field_is_not_road_before_she_remembers :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_3)
+	testing.expect(t, g.tiles[8][8] == .Field, "field at the start")
+	testing.expect(t, !passable(&g, {8, 8}), "cannot drive on it yet")
+}
+
+@(test)
+level_3_missed_turn_recovers_through_the_dead_end :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_3)
+	l3_to_mouth(&g)
+	play(&g, .Forward, 2) // runs past the mouth to the Hendersons'
+	play(&g, .Brake, 6) // her timeout, then the dead-end line
+	testing.expect(t, g.spoken[5], "dead-end line spoken")
+	testing.expect(t, g.heading == .East, "turned around")
+	g.control_turns = {}
+	play(&g, .Forward, 2)
+	testing.expect(t, g.car == [2]int{8, 3}, "back at the mouth")
+	play(&g, .Turn_Right) // heading E, right is S
+	play(&g, .Forward)
+	testing.expect(t, g.outcomes[6] == .Obeyed, "re-offered line obeyed")
+	testing.expect(t, g.active == 4, "field line active")
+}

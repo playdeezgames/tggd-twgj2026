@@ -100,7 +100,7 @@ Notes: with the delay active, the turn input has to be pressed one tile early, s
 
 Teaches nothing: everything is on. Uses `Flip_Left_Right`, `Swap_Brake_Horn`, `Input_Delay`, a map rewrite, and a free U-turn. The player drives the whole loop and learns the shortcut leads home.
 
-Patience 40. Start `(3,13)` facing E. Goal is the start tile.
+Patience 40. Start `(5,13)` facing E. Goal `(3,13)`, two tiles west of the start, in front of her own yellow house `Y` at `(2,13)`. The start and goal are different tiles so the drive has to happen.
 
 ```
 ........................
@@ -116,14 +116,14 @@ Patience 40. Start `(3,13)` facing E. Goal is the start tile.
 ........,.=..........W..
 ........,.=.T...........
 ........,.=.............
-...S=========...........
+..YG=S=======...........
 ........................
 ........................
 ```
 
 Landmarks: Hendersons' `(5,3)` (at the dead end), Barn ruin `(14,5)`, Cow `(2,7)`, pond `(21,10)`. Pratt's field `,` is the column `x = 8, y = 4..12`. It becomes road when line 4 fires.
 
-Scripted solution: E 7 tiles, turn N at `(10,13)`, N 5 tiles, turn E at `(10,8)`, E 8 tiles, turn N at `(18,8)`, N 5 tiles, turn W at `(18,3)`, W 10 tiles to `(8,3)`, turn S into the field, S 10 tiles, turn W at `(8,13)`, W 5 tiles to the start. About 50 moves.
+Scripted solution: E 5 tiles, turn N at `(10,13)`, N 5 tiles, turn E at `(10,8)`, E 8 tiles, turn N at `(18,8)`, N 5 tiles, turn W at `(18,3)`, W 10 tiles to `(8,3)`, turn S into the field, S 10 tiles, turn W at `(8,13)`, W 5 tiles to the goal. About 48 moves, plus the turns. With flipped steering the key for each turn is the opposite of the car's turn.
 
 | # | Cue | She says | Intent | Expects | Timeout | Effects |
 |---|---|---|---|---|---|---|
@@ -131,8 +131,8 @@ Scripted solution: E 7 tiles, turn N at `(10,13)`, N 5 tiles, turn E at `(10,8)`
 | 2 | `At_Region(Corner_2)` | "Straight on past the pond." | Turn E at `(10,8)`, then N at `(18,8)` | `Turn_At(N, Corner_3)` | 14 | wrong: `Patience(-3)`, "We don't go that way." |
 | 3 | `At_Region(Corner_4)` | "Left, and mind the wires." | Turn W at `(18,3)` | `Turn_At(Left, Corner_4)` | 10 | obey: `Control(Swap_Brake_Horn, 18)`, `Retint(Palette_2)` |
 | 4 | `At_Region(Mouth)` | "Oh! Pratt's field! I always go through Pratt's field." | Turn S at `(8,3)` | `Turn_At(Left, Mouth)` | 6 | on cue: `Set_Tiles(Field, Road)`, `Retint(Palette_3)`; wrong: car runs on to the Hendersons' dead end; "Oh, they've moved. Back we go." `Turn_Around`, `Patience(-6)`, re-offer line 4 |
-| 5 | `After(4, Obeyed)` | "Straight down, straight down, you'll see the house." | Drive S to `(8,13)` and turn W | `Turn_At(Right, Corner_5)` | 12 | on cue: `Control(Input_Delay, 8)` |
-| 6 | `Near(Start, 2)` | "Here we are, here we are! ... Oh. This is my house." | Reach the start | `Reach(Goal)` | 10 | obey: "Well. You drove beautifully. Do come in." verdict delighted |
+| 5 | `At_Region(Field)` | "Straight down, straight down, you'll see the house." | Drive S to `(8,13)` and turn W | `Turn_At(Right, Corner_5)` | 12 | on cue: `Control(Input_Delay, 12)` |
+| 6 | `At_Region(Near_Home)` | "Here we are, here we are! ... Oh. This is my house." | Reach the start | `Reach(Goal)` | 10 | obey: "Well. You drove beautifully. Do come in." verdict delighted |
 
 Length decision: the loop stays at about 50 moves; the length is part of the joke. If playtest shows raters bailing, shorten the outer road before cutting content.
 

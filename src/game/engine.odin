@@ -63,6 +63,8 @@ Effect_Kind :: enum u8 {
 	Move_Landmark,   // `landmark` jumps to `pos`
 	Remove_Landmark, // `landmark` vanishes
 	Walk_Landmark,   // `landmark` starts walking `path`, one tile per player move
+	Set_Tiles,       // every tile in `region` becomes `tile`
+	Retint,          // switch to palette `n`
 }
 
 Effect :: struct {
@@ -73,6 +75,8 @@ Effect :: struct {
 	landmark: Landmark_Kind,
 	pos:      [2]int,
 	path:     []([2]int),
+	region:   int,
+	tile:     Tile,
 }
 
 Instruction :: struct {
@@ -113,6 +117,15 @@ apply_effects :: proc(g: ^Game, effects: []Effect) {
 		case .Walk_Landmark:
 			g.landmarks[e.landmark].path = e.path
 			g.landmarks[e.landmark].path_i = 0
+		case .Set_Tiles:
+			r := g.level.regions[e.region]
+			for y in r.y0 ..= r.y1 {
+				for x in r.x0 ..= r.x1 {
+					g.tiles[y][x] = e.tile
+				}
+			}
+		case .Retint:
+			g.palette = e.n
 		}
 	}
 }

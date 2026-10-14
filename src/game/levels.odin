@@ -219,4 +219,136 @@ LEVEL_2_INSTRUCTIONS := [?]Instruction {
 	},
 }
 
-LEVELS := [?]^Level{&LEVEL_1, &LEVEL_2}
+
+// ---------------------------------------------------------------------------------------------
+// Level 3: Pratt's Field. See LEVELS.md. Everything is on: flipped steering, swapped brake and
+// horn, a delay, a field that becomes road, a dead end, and a drive that ends back home.
+// Start (5,13) and goal (3,13) are different tiles so the drive has to happen.
+
+LEVEL_3 := Level {
+	name = "Pratt's Field",
+	rows = {
+		"........................",
+		"...............T........",
+		"........................",
+		".....H=============.....",
+		"........,.........=.....",
+		"........,.....~...=.....",
+		"........,.........=.....",
+		"..C.....,.........=.....",
+		"........,.=========.....",
+		"........,.=.............",
+		"........,.=..........W..",
+		"........,.=.T...........",
+		"........,.=.............",
+		"..YG=S=======...........",
+		"........................",
+		"........................",
+	},
+	start        = {5, 13},
+	heading      = .East,
+	goal         = {3, 13},
+	patience     = 40,
+	regions      = LEVEL_3_REGIONS[:],
+	instructions = LEVEL_3_INSTRUCTIONS[:],
+}
+
+L3_CORNER_1 :: 0
+L3_CORNER_2 :: 1
+L3_CORNER_3 :: 2
+L3_CORNER_4 :: 3
+L3_MOUTH :: 4
+L3_FIELD :: 5
+L3_CORNER_5 :: 6
+L3_NEAR_HOME :: 7
+L3_HOME :: 8
+L3_DEAD_END :: 9
+
+LEVEL_3_REGIONS := [?]Region {
+	L3_CORNER_1  = {10, 13, 10, 13},
+	L3_CORNER_2  = {10, 8, 10, 8},
+	L3_CORNER_3  = {18, 8, 18, 8},
+	L3_CORNER_4  = {18, 3, 18, 3},
+	L3_MOUTH     = {8, 3, 8, 3},
+	L3_FIELD     = {8, 4, 8, 12},
+	L3_CORNER_5  = {8, 13, 8, 13},
+	L3_NEAR_HOME = {3, 13, 4, 13},
+	L3_HOME      = {3, 13, 3, 13},
+	L3_DEAD_END  = {6, 3, 6, 3},
+}
+
+LEVEL_3_INSTRUCTIONS := [?]Instruction {
+	{ 	// 0: steering is flipped for the whole drive, so the key she names makes the turn
+		text = "Right at the big tree, dear.",
+		intent = "Turn N at (10,13): a left turn for the car, so with flipped steering press right",
+		cue = {kind = .At_Start},
+		on_start = {{kind = .Control, flag = .Flip_Left_Right, n = 60}},
+		expects = {{kind = .Turn_At, region = L3_CORNER_1, turn = .Left}},
+		timeout = 14,
+		on_wrong = {{kind = .Patience, n = -3}},
+		on_timeout = {{kind = .Patience, n = -5}},
+	},
+	{ 	// 1
+		text = "Straight on past the pond.",
+		intent = "Turn E at (10,8), then N at (18,8)",
+		cue = {kind = .At_Region, region = L3_CORNER_2},
+		expects = {{kind = .Face, region = L3_CORNER_3, heading = .North}},
+		timeout = 14,
+		on_wrong = {{kind = .Patience, n = -3}, {kind = .Say, text = "We don't go that way."}},
+		on_timeout = {{kind = .Patience, n = -5}},
+	},
+	{ 	// 2
+		text = "Left, and mind the wires.",
+		intent = "Turn W at (18,3)",
+		cue = {kind = .At_Region, region = L3_CORNER_4},
+		expects = {{kind = .Turn_At, region = L3_CORNER_4, turn = .Left}},
+		timeout = 10,
+		on_obey = {{kind = .Control, flag = .Swap_Brake_Horn, n = 18}, {kind = .Retint, n = 2}},
+		on_wrong = {{kind = .Patience, n = -3}},
+		on_timeout = {{kind = .Patience, n = -5}, {kind = .Control, flag = .Swap_Brake_Horn, n = 18}, {kind = .Retint, n = 2}},
+	},
+	{ 	// 3: the field becomes road the moment she remembers it, whether or not you turn in
+		text = "Oh! Pratt's field! I always go through Pratt's field.",
+		intent = "Turn S into the field at (8,3)",
+		cue = {kind = .At_Region, region = L3_MOUTH},
+		on_start = {{kind = .Set_Tiles, region = L3_FIELD, tile = .Road}, {kind = .Retint, n = 3}},
+		expects = {{kind = .Turn_At, region = L3_MOUTH, turn = .Left}},
+		timeout = 6,
+		on_wrong = {{kind = .Patience, n = -3}},
+	},
+	{ 	// 4: enters the field by any route, so a missed turn can still recover
+		text = "Straight down, straight down, you'll see the house.",
+		intent = "Drive S to (8,13) and turn W; the turn is held back by the delay, so press it a tile early",
+		cue = {kind = .At_Region, region = L3_FIELD},
+		on_start = {{kind = .Control, flag = .Input_Delay, n = 12}},
+		expects = {{kind = .Turn_At, region = L3_CORNER_5, turn = .Right}},
+		timeout = 16,
+		on_timeout = {{kind = .Patience, n = -5}},
+	},
+	{ 	// 5: missed the field and ran on to the Hendersons' dead end
+		text = "Oh, they've moved. Back we go.",
+		intent = "Recover from the Hendersons' dead end",
+		cue = {kind = .At_Region, region = L3_DEAD_END},
+		on_start = {{kind = .Turn_Around}, {kind = .Patience, n = -6}},
+		timeout = 1,
+	},
+	{ 	// 6: re-offers the field
+		text = "Pratt's field, dear. I told you. Pratt's field.",
+		intent = "Turn S into the field at (8,3) now that you are heading E",
+		cue = {kind = .After, id = 5},
+		expects = {{kind = .Turn_At, region = L3_MOUTH, turn = .Right}},
+		timeout = 10,
+		on_timeout = {{kind = .Patience, n = -5}},
+	},
+	{ 	// 7
+		text = "Here we are, here we are! ... Oh. This is my house.",
+		intent = "Reach home at (3,13)",
+		cue = {kind = .At_Region, region = L3_NEAR_HOME},
+		expects = {{kind = .Reach, region = L3_HOME}},
+		timeout = 10,
+		on_obey = {{kind = .Say, text = "Well. You drove beautifully. Do come in."}, {kind = .Score, n = 1}},
+		on_timeout = {{kind = .Patience, n = -5}},
+	},
+}
+
+LEVELS := [?]^Level{&LEVEL_1, &LEVEL_2, &LEVEL_3}

@@ -50,6 +50,7 @@ Game :: struct {
 	won:      bool,
 	lost:     bool,
 	score:    int,
+	palette:  int, // index into the platform layer's palette table
 
 	landmarks:     [Landmark_Kind]Landmark,
 	control_turns: [Control_Flag]int, // turns each sabotage flag has left
