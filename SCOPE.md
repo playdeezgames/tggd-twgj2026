@@ -37,7 +37,7 @@ You drive. Grandma navigates from the passenger seat with landmark-based directi
 - Software framebuffer drawn through a thin JS canvas shim; text via a small bitmap font from the vault (`Assets/`, credit on the game page).
 - Game state is a plain struct stepped by input events. No ECS.
 - Instruction engine: each instruction is a data record (text, condition, effect on the map or controls); levels are lists of these.
-- Procedural audio through a tiny WebAudio shim (square-wave beeps).
+- Audio: jsfxr-generated effects played through WebAudio, plus a live-synthesised off-key radio.
 
 ## Milestones
 
@@ -54,6 +54,7 @@ You drive. Grandma navigates from the passenger seat with landmark-based directi
 
 - AI-disclosure line on the itch page (code written by Claude).
 - Credit every premade asset: the DINOBYTE line under Decisions, plus any tiles.
+- Sound effects were generated with jsfxr (https://sfxr.me) and are in `assets/sfx/`; the radio hymn is synthesised in `web/index.html`. Mention jsfxr on the itch page.
 - Content-rules check: nothing hateful or sexual, no fake viruses, no flashing lights (or add a warning).
 - Publish only when the user says to, with `butler`, after a fresh build (see the vault's `Tech/Shipping to itch.io.md`).
 

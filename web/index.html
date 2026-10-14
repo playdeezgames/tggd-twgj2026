@@ -59,6 +59,34 @@
     return ac;
   }
   const WAVES = ["square", "sawtooth", "triangle"];
+  // Sound effects: jsfxr samples, in the order of `Sound` in src/game/game.odin.
+  const SFX = ["putt", "honk", "brake", "obey", "wrong", "timeout", "loud_mute", "arrive"];
+  const sfxBuffers = SFX.map(() => null);
+  let sfxRequested = false;
+  function loadSfx(a) {
+    if (sfxRequested) return;
+    sfxRequested = true;
+    SFX.forEach((name, i) => {
+      fetch("assets/sfx/" + name + ".wav")
+        .then((r) => r.arrayBuffer())
+        .then((b) => a.decodeAudioData(b))
+        .then((buf) => { sfxBuffers[i] = buf; })
+        .catch(() => {});
+    });
+  }
+  function sfx(id, gain, maxMs) {
+    const a = audio();
+    if (!a) return;
+    loadSfx(a);
+    const buf = sfxBuffers[id];
+    if (!buf) return;
+    const src = a.createBufferSource();
+    const g = a.createGain();
+    src.buffer = buf;
+    g.gain.value = gain;
+    src.connect(g); g.connect(a.destination);
+    src.start(0, 0, Math.min(buf.duration, maxMs / 1000));
+  }
   function tone(freq, ms, wave, gain) {
     const a = audio();
     if (!a) return;
@@ -91,7 +119,7 @@
 
   const imports = {
     canvas: {
-      audio_tone: tone,
+      audio_sfx: sfx,
       audio_radio: radio,
       fill_rect: (x, y, w, h, rgb) => { g.fillStyle = hex(rgb); g.fillRect(x, y, w, h); },
       blit: (sheet, sx, sy, w, h, dx, dy, rgb) => {

@@ -9,4 +9,6 @@ cp "$("$ODIN" root)/core/sys/wasm/js/odin.js" build/web/
 cp web/index.html build/web/
 mkdir -p build/web/assets
 cp assets/*.png assets/*.txt build/web/assets/
+mkdir -p build/web/assets/sfx
+cp assets/sfx/*.wav assets/sfx/*.txt build/web/assets/sfx/
 echo "built build/web"

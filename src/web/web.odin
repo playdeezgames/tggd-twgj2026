@@ -18,8 +18,8 @@ foreign canvas {
 	fill_rect :: proc(x, y, w, h: i32, rgb: u32) ---
 	// Copy a w by h piece of a sheet at (sx, sy) to (dx, dy), tinted 0xRRGGBB.
 	blit :: proc(sheet: i32, sx, sy, w, h: i32, dx, dy: i32, rgb: u32) ---
-	// One tone: wave 0 square, 1 saw, 2 triangle.
-	audio_tone :: proc(freq: f32, ms: i32, wave: i32, gain: f32) ---
+	// Plays sound effect `id` (order of game.Sound), at most `max_ms` long.
+	audio_sfx :: proc(id: i32, gain: f32, max_ms: i32) ---
 	// Starts the looping, slightly off-key radio. Safe to call repeatedly; it cannot be stopped.
 	audio_radio :: proc(loud: bool) ---
 }
@@ -118,18 +118,17 @@ on_key :: proc(e: js.Event) {
 	}
 }
 
-// Every sound is a little wrong on purpose: detuned, flat, or two notes a semitone apart.
+// Effects are jsfxr samples in assets/sfx, one file per game.Sound in enum order. The long ones
+// are cut short so a per-move putt stays a putt.
 play_sound :: proc(s: game.Sound) {
-	switch s {
-	case .Putt:      audio_tone(92, 40, 1, 0.06)
-	case .Honk:      audio_tone(440, 260, 0, 0.12); audio_tone(466, 260, 0, 0.12)
-	case .Brake:     audio_tone(58, 180, 1, 0.12)
-	case .Obey:      audio_tone(523, 90, 0, 0.1); audio_tone(659, 110, 0, 0.1); audio_tone(711, 220, 0, 0.1)
-	case .Wrong:     audio_tone(110, 320, 0, 0.14); audio_tone(117, 320, 1, 0.1)
-	case .Timeout:   audio_tone(300, 120, 2, 0.12); audio_tone(212, 360, 2, 0.12)
-	case .Loud_Mute: audio_tone(880, 600, 0, 0.35); audio_radio(true)
-	case .Arrive:    audio_tone(392, 140, 0, 0.1); audio_tone(494, 140, 0, 0.1); audio_tone(575, 420, 0, 0.1)
+	gain: f32 = 0.5
+	max_ms: i32 = 700
+	#partial switch s {
+	case .Putt:      gain, max_ms = 0.15, 110
+	case .Honk:      gain, max_ms = 0.4, 450
+	case .Loud_Mute: gain, max_ms = 1.0, 900
 	}
+	audio_sfx(i32(s), gain, max_ms)
 }
 
 @(export)
