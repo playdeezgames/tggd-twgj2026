@@ -14,15 +14,15 @@ Draft content for the three levels, in the vocabulary of `ENGINE.md`. Maps are 2
 
 ## Level 1: Sunday Drive
 
-Teaches: waiting for a line, obeying a vague turn, a landmark that has two possible names. No sabotage.
+Teaches: waiting for a line, obeying a vague turn, a landmark that has two possible names. No sabotage. This is the one level where she is right: it ends at the place she named, so the wrong destinations in levels 2 and 3 land harder.
 
-Patience 30. Start `(2,14)` facing N. Goal `(21,3)` ("the thing out front").
+Patience 30. Start `(2,14)` facing N. Goal `(21,3)`, in front of the Hendersons' ("the thing out front").
 
 ```
 ........................
 ........................
-........T........H......
-............=========GY.
+........T........Y......
+............=========GH.
 ............=...........
 .....T......=...........
 ...........B=C.....T....
@@ -37,7 +37,7 @@ Patience 30. Start `(2,14)` facing N. Goal `(21,3)` ("the thing out front").
 ........................
 ```
 
-Landmarks: Old Oak `(1,8)`, Barn `(11,6)`, Cow `(13,6)`, Hendersons' `(17,2)`, Yellow house `(22,3)`.
+Landmarks: Old Oak `(1,8)`, Barn `(11,6)`, Cow `(13,6)`, Yellow house `(17,2)` (a decoy), Hendersons' `(22,3)` (the goal).
 
 Scripted solution: N 5 tiles, turn E at `(2,9)`, E 10 tiles, turn N at `(12,9)`, N 6 tiles, turn E at `(12,3)`, E 9 tiles to the goal. About 30 moves.
 
@@ -47,9 +47,9 @@ Scripted solution: N 5 tiles, turn E at `(2,9)`, E 10 tiles, turn N at `(12,9)`,
 | 2 | `After(1, Obeyed)` | "Now the way the sun goes." | Turn E at the corner | `Turn_At(E, Corner_A)` | 8 | wrong: `Patience(-3)`, "The *other* way the sun goes." (only E is open, so this is just a joke) |
 | 3 | `At_Region(Junction_B)` | "Left at the barn. Or the cow. One of them." | Turn N at `(12,9)` | `Turn_At(Left, Junction_B)` | 8 | obey: `Score(+1)` |
 | 4 | `After(3, Obeyed)` | "Keep on till it smells like the Hendersons'." | Drive N, then E at `(12,3)` | `Turn_At(E, Corner_C)` | 12 | timeout: "You can smell it from here." |
-| 5 | `Near(Yellow_House, 3)` | "It's the one with the thing out front, dear." | Reach the goal | `Reach(Goal)` | 10 | obey: "Well, this isn't the Hendersons'. Lovely, though." verdict delighted |
+| 5 | `Near(Hendersons, 3)` | "It's the one with the thing out front, dear." | Reach the goal (not the yellow house, which has its own thing out front) | `Reach(Goal)` | 10 | obey: "There it is. Just as I remembered." verdict delighted; timeout: `Patience(-5)`, "No, dear, the *other* thing out front." |
 
-Notes: line 3 is the first piece of real ambiguity, but there is only one road to take, so it cannot fail. Line 5 plants the level's punchline: the Hendersons' (`H`) is visible and is not the goal.
+Notes: line 3 is the first piece of real ambiguity, but there is only one road to take, so it cannot fail. Line 5 sets the level's one trap: the yellow house (`Y`) also has a thing out front, but the goal is the Hendersons' at the end of the road.
 
 ---
 
@@ -147,4 +147,4 @@ Notes: the player drives the whole loop (the outer road returns to the start onl
 
 ## Open questions
 
-- Two of three levels end at a place that is not what she named. Level 1 could end at the right house and save the "wrong place" for 2 and 3.
+None at the moment. Playtest will decide the level 3 length and the input-delay balance.
