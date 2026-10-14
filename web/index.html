@@ -83,6 +83,7 @@
     const src = a.createBufferSource();
     const g = a.createGain();
     src.buffer = buf;
+    src.playbackRate.value = 0.82 + Math.random() * 0.4; // never the same pitch twice
     g.gain.value = gain;
     src.connect(g); g.connect(a.destination);
     src.start(0, 0, Math.min(buf.duration, maxMs / 1000));
