@@ -118,8 +118,8 @@ LEVEL_2 := Level {
 		"..........C.............",
 		".............~..........",
 		"......===============...",
-		".......===....=.........",
-		".......==.....=H....T...",
+		".......=.=.=..=.........",
+		".......===.=..=H....T...",
 		".......=......=.........",
 		"......YG......=======S..",
 		"........................",
@@ -127,7 +127,7 @@ LEVEL_2 := Level {
 	start        = {21, 14},
 	heading      = .West,
 	goal         = {7, 14},
-	patience     = 30,
+	patience     = 36,
 	regions      = LEVEL_2_REGIONS[:],
 	instructions = LEVEL_2_INSTRUCTIONS[:],
 	verdicts = {
@@ -151,11 +151,11 @@ L2_EAST_END :: 8
 LEVEL_2_REGIONS := [?]Region {
 	L2_CORNER_1   = {14, 14, 14, 14},
 	L2_FORK       = {14, 10, 14, 10},
-	L2_ROW10_WEST = {11, 10, 13, 10},
-	L2_LEFT_ZONE  = {7, 10, 9, 10},
-	L2_LEFT_2     = {8, 10, 8, 10},
+	L2_ROW10_WEST = {12, 10, 13, 10},
+	L2_LEFT_ZONE  = {7, 10, 11, 10}, // from the first left to the end of the three
+	L2_LEFT_2     = {9, 10, 9, 10},
 	L2_LEFT_3     = {7, 10, 7, 10},
-	L2_DEAD_END   = {9, 11, 9, 11},
+	L2_DEAD_END   = {11, 11, 11, 11}, // the first left, Mr. Pratt's drive
 	L2_CHURCH     = {7, 14, 7, 14},
 	L2_EAST_END   = {20, 10, 20, 10},
 }

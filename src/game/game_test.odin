@@ -168,15 +168,15 @@ cow_walks_ahead_one_tile_per_move :: proc(t: ^testing.T) {
 first_left_is_a_dead_end_that_turns_you_around :: proc(t: ^testing.T) {
 	g := new_game(&LEVEL_2)
 	drive_to_fork(&g)
-	play(&g, .Forward, 4) // now at (10,10)
+	play(&g, .Forward, 2) // now at (12,10)
 	play(&g, .Turn_Left) // held back
-	play(&g, .Forward) // to (9,10); the turn lands: facing south
+	play(&g, .Forward) // to (11,10); the turn lands: facing south
 	play(&g, .Forward) // into the dead end
 	testing.expect(t, g.outcomes[3] == .Wrong, "marked wrong")
 	testing.expect(t, g.heading == .North, "turned around")
-	testing.expect(t, g.car == [2]int{9, 11}, "at the dead end")
+	testing.expect(t, g.car == [2]int{11, 11}, "at the dead end")
 	play(&g, .Forward)
-	testing.expect(t, g.car == [2]int{9, 10}, "back on the road")
+	testing.expect(t, g.car == [2]int{11, 10}, "back on the road")
 }
 
 @(test)
@@ -365,4 +365,33 @@ unspoken_recovery_lines_do_not_count_against_you :: proc(t: ^testing.T) {
 	testing.expect(t, c.obeyed == spoken_count(&g), "every line she said was obeyed")
 	testing.expect(t, spoken_count(&g) < len(LEVEL_2_INSTRUCTIONS), "the east-end line was never needed")
 	testing.expect(t, verdict_tier(&g) == .Exactly_As_Told, "tier agrees")
+}
+
+@(test)
+second_left_also_reaches_the_church :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_2)
+	drive_to_fork(&g)
+	play(&g, .Forward, 4) // (10,10)
+	play(&g, .Turn_Left) // held back
+	play(&g, .Forward) // (9,10), then the turn lands: south
+	g.control_turns = {} // this test is about the road layout, not the delay
+	play(&g, .Forward, 2) // (9,12)
+	play(&g, .Turn_Right) // west along the connector
+	play(&g, .Forward, 2) // (7,12)
+	play(&g, .Turn_Left) // south again
+	play(&g, .Forward, 2) // (7,14)
+	play(&g, .Brake, 2)
+	testing.expect(t, g.outcomes[3] == .Obeyed, "second left obeyed")
+	testing.expect(t, g.won, "arrived by the longer way")
+}
+
+@(test)
+the_three_lefts_are_two_tiles_apart :: proc(t: ^testing.T) {
+	g := new_game(&LEVEL_2)
+	for x in ([?]int{11, 9, 7}) {
+		testing.expectf(t, g.tiles[11][x] == .Road, "side road at x=%d", x)
+	}
+	for x in ([?]int{8, 10}) {
+		testing.expectf(t, g.tiles[11][x] != .Road, "gap at x=%d", x)
+	}
 }
