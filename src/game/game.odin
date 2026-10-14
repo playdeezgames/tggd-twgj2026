@@ -40,7 +40,8 @@ Level :: struct {
 	heading: Heading,
 	goal:    [2]int,
 	patience: int,
-	opening: string,
+	regions:      []Region,
+	instructions: []Instruction,
 }
 
 Game :: struct {
@@ -53,6 +54,15 @@ Game :: struct {
 	said:     string,
 	won:      bool,
 	lost:     bool,
+	score:    int,
+
+	// Instruction engine state (engine.odin).
+	active:         int, // index into level.instructions, or -1
+	since_active:   int, // turns since the active instruction began
+	since_resolved: int, // turns since the previous instruction resolved
+	still:          int, // consecutive turns the car has not moved
+	outcomes:       [MAX_INSTRUCTIONS]Outcome,
+	spoken:         [MAX_INSTRUCTIONS]bool,
 }
 
 // One patience point drains every this many turns.
@@ -82,12 +92,14 @@ tile_from_char :: proc(c: u8) -> Tile {
 }
 
 new_game :: proc(level: ^Level) -> Game {
-	g := Game{level = level, car = level.start, heading = level.heading, patience = level.patience, said = level.opening}
+	g := Game{level = level, car = level.start, heading = level.heading, patience = level.patience, active = -1}
+	assert(len(level.instructions) <= MAX_INSTRUCTIONS)
 	for y in 0 ..< H {
 		for x in 0 ..< W {
 			g.tiles[y][x] = tile_from_char(level.rows[y][x])
 		}
 	}
+	fire_cue(&g)
 	return g
 }
 
@@ -99,24 +111,35 @@ passable :: proc(g: ^Game, p: [2]int) -> bool {
 	return in_bounds(p) && g.tiles[p.y][p.x] == .Road
 }
 
-// One player command, one turn. The instruction engine (ENGINE.md) will hook in here.
+// One player command, one turn: apply it, evaluate the active instruction (engine.odin), fire the next cue, drain patience.
 step :: proc(g: ^Game, cmd: Command) {
 	if g.won || g.lost {
 		return
 	}
+	a: Action
 	switch cmd {
 	case .Turn_Left:
 		g.heading = Heading((int(g.heading) + 3) % 4)
+		a.turn = .Left
 	case .Turn_Right:
 		g.heading = Heading((int(g.heading) + 1) % 4)
+		a.turn = .Right
 	case .Forward:
 		next := g.car + DELTA[g.heading]
 		if passable(g, next) {
 			g.car = next
+			a.moved = true
 		}
-	case .Brake, .Horn:
+	case .Brake:
+	case .Horn:
+		a.honk = true
 	}
 	g.turn += 1
+	g.since_active += 1
+	g.since_resolved += 1
+	g.still = a.moved ? 0 : g.still + 1
+	evaluate_active(g, a)
+	fire_cue(g)
 	if g.turn % DRAIN_EVERY == 0 {
 		g.patience -= 1
 	}
