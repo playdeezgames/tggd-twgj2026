@@ -10,6 +10,8 @@ Grandma is navigating. You are driving. She means well.
 
 ## Description
 
+**Latest version:** https://playdeezgames.github.io/tggd-twgj2026/
+
 Grandma has directions, and she is very sure of them. Left at the barn. Or the cow. One of them.
 The barn burned down in 1987, but she remembers it fondly, and she'd like you to turn there.
 
